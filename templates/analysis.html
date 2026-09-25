@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analysis - AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        /* =========================================
+           ANALYSIS LOADING PAGE
+           ========================================= */
+
+        .analysis-screen {
+            min-height: calc(100vh - 63px);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        .analysis-container {
+            width: 650px;
+            max-width: 100%;
+        }
+
+        .analysis-loading-card {
+            position: relative;
+
+            min-height: 560px;
+
+            padding: 42px 48px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #fffdf8,
+                    #f8f0e2
+                );
+
+            border: 1px solid #ddd2c2;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 14px 35px rgba(22,31,38,.10);
+
+            overflow: hidden;
+        }
+
+        /* Paper decoration */
+
+        .analysis-loading-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 160px;
+            height: 160px;
+
+            left: -55px;
+            top: -55px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(214,194,162,.22),
+                    transparent 68%
+                );
+        }
+
+        .analysis-loading-card::after {
+            content: "";
+
+            position: absolute;
+
+            width: 180px;
+            height: 150px;
+
+            right: -55px;
+            bottom: -25px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    transparent 38%,
+                    rgba(203,183,151,.16) 39%,
+                    rgba(203,183,151,.16) 41%,
+                    transparent 42%
+                );
+
+            opacity: .8;
+        }
+
+        /* Detective icon */
+
+        .analysis-detective-icon {
+            width: 110px;
+            height: 110px;
+
+            margin: 20px auto 22px;
+
+            border-radius: 50%;
+
+            background:
+                #f2e7d7;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            position: relative;
+        }
+
+        .magnifier {
+            width: 48px;
+            height: 48px;
+
+            border: 6px solid #1a2e40;
+
+            border-radius: 50%;
+
+            position: relative;
+
+            transform: rotate(-30deg);
+        }
+
+        .magnifier::after {
+            content: "";
+
+            position: absolute;
+
+            width: 32px;
+            height: 7px;
+
+            border-radius: 6px;
+
+            background: #1a2e40;
+
+            right: -27px;
+            bottom: -14px;
+        }
+
+        .magnifier::before {
+            content: "";
+
+            position: absolute;
+
+            width: 31px;
+            height: 31px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle at 35% 30%,
+                    rgba(255,255,255,.8),
+                    rgba(190,214,229,.55)
+                );
+
+            top: 2px;
+            left: 2px;
+        }
+
+        .sparkle {
+            position: absolute;
+            font-size: 20px;
+            color: #1d2b35;
+        }
+
+        .sparkle.left {
+            left: 18px;
+            bottom: 28px;
+        }
+
+        .sparkle.right {
+            right: 17px;
+            top: 25px;
+            color: #9c9c94;
+            font-size: 15px;
+        }
+
+        /* Heading */
+
+        .analysis-loading-title {
+            text-align: center;
+
+            font-family: "Playfair Display", serif;
+
+            font-size: 27px;
+
+            color: #17232b;
+
+            margin-bottom: 7px;
+        }
+
+        .analysis-loading-description {
+            max-width: 430px;
+
+            margin: 0 auto 22px;
+
+            text-align: center;
+
+            color: #718087;
+
+            font-size: 10px;
+
+            line-height: 1.6;
+        }
+
+        /* Progress */
+
+        .analysis-progress-row {
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            margin-bottom: 23px;
+        }
+
+        .analysis-progress {
+            flex: 1;
+
+            height: 9px;
+
+            background: #e8e1d6;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+        }
+
+        .analysis-progress-fill {
+            width: 68%;
+            height: 100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #285c92,
+                    #3e72a5
+                );
+
+            border-radius: 20px;
+        }
+
+        .analysis-progress-value {
+            font-size: 10px;
+            font-weight: 700;
+            color: #23323b;
+        }
+
+        /* Steps */
+
+        .analysis-steps {
+            width: 100%;
+            max-width: 430px;
+
+            margin: 0 auto;
+        }
+
+        .analysis-step {
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            padding: 8px 0;
+
+            font-size: 10px;
+
+            color: #9ca2a4;
+        }
+
+        .analysis-step.completed {
+            color: #25343e;
+        }
+
+        .analysis-step.active {
+            color: #25343e;
+            font-weight: 600;
+        }
+
+        .step-icon {
+            width: 21px;
+            height: 21px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            border: 2px solid #c6c7c4;
+
+            font-size: 9px;
+        }
+
+        .analysis-step.completed .step-icon {
+            background: #285c92;
+            border-color: #285c92;
+            color: white;
+        }
+
+        .analysis-step.active .step-icon {
+            border-color: #285c92;
+            color: #285c92;
+            background: white;
+        }
+
+        .analysis-step.pending .step-icon {
+            color: #b7b9b8;
+        }
+
+        /* Bottom quote */
+
+        .analysis-case-note {
+            position: relative;
+            z-index: 2;
+
+            margin-top: 25px;
+
+            text-align: center;
+
+            color: #8b7761;
+
+            font-family: "Playfair Display", serif;
+
+            font-size: 10px;
+
+            font-style: italic;
+        }
+
+        @media (max-width: 650px) {
+
+            .analysis-screen {
+                padding: 15px;
+            }
+
+            .analysis-loading-card {
+                padding: 30px 22px;
+            }
+
+            .analysis-loading-title {
+                font-size: 23px;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- =========================================
+         SIDEBAR
+         ========================================= -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon">
+                🕵️
+            </div>
+
+            <div>
+                <h2>
+                    Missing Information<br>
+                    Detective
+                </h2>
+
+                <span>
+                    AI DOCUMENT INVESTIGATION
+                </span>
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="/">
+                <span class="icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/upload" class="active">
+                <span class="icon">▣</span>
+                <span>Analyze Document</span>
+            </a>
+
+            <a href="/history">
+                <span class="icon">◷</span>
+                <span>History</span>
+            </a>
+
+            <a href="/admin">
+                <span class="icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+            The truth<br>
+            is in the details...
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================
+         MAIN
+         ========================================= -->
+
+    <main class="main-area">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div class="topbar-icon">
+                🔔
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <span class="profile-name">
+                    Samruddhi
+                </span>
+
+                <span class="profile-arrow">
+                    ▼
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- ANALYSIS SCREEN -->
+
+        <div class="analysis-screen">
+
+            <div class="analysis-container">
+
+                <div class="analysis-loading-card">
+
+
+                    <!-- MAGNIFYING GLASS -->
+
+                    <div class="analysis-detective-icon">
+
+                        <span class="sparkle left">
+                            ✦
+                        </span>
+
+                        <div class="magnifier"></div>
+
+                        <span class="sparkle right">
+                            ✦
+                        </span>
+
+                    </div>
+
+
+                    <!-- HEADING -->
+
+                    <h1 class="analysis-loading-title">
+                        Analyzing Your Document...
+                    </h1>
+
+
+                    <p class="analysis-loading-description">
+                        Our AI is extracting information,
+                        identifying key details and finding
+                        what might be missing.
+                    </p>
+
+
+                    <!-- PROGRESS -->
+
+                    <div class="analysis-progress-row">
+
+                        <div class="analysis-progress">
+
+                            <div
+                                id="analysisProgressFill"
+                                class="analysis-progress-fill">
+                            </div>
+
+                        </div>
+
+                        <span
+                            id="analysisProgressValue"
+                            class="analysis-progress-value">
+                            68%
+                        </span>
+
+                    </div>
+
+
+                    <!-- STEPS -->
+
+                    <div class="analysis-steps">
+
+
+                        <div class="analysis-step completed">
+
+                            <div class="step-icon">
+                                ✓
+                            </div>
+
+                            <span>
+                                Reading document
+                            </span>
+
+                        </div>
+
+
+                        <div class="analysis-step completed">
+
+                            <div class="step-icon">
+                                ✓
+                            </div>
+
+                            <span>
+                                Extracting key information
+                            </span>
+
+                        </div>
+
+
+                        <div class="analysis-step active">
+
+                            <div class="step-icon">
+                                ◯
+                            </div>
+
+                            <span>
+                                Checking for missing details
+                            </span>
+
+                        </div>
+
+
+                        <div class="analysis-step pending">
+
+                            <div class="step-icon">
+                                ◇
+                            </div>
+
+                            <span>
+                                Verifying inconsistencies
+                            </span>
+
+                        </div>
+
+
+                        <div class="analysis-step pending">
+
+                            <div class="step-icon">
+                                ♧
+                            </div>
+
+                            <span>
+                                Generating report
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="analysis-case-note">
+                        The truth is in the details...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const fill =
+                document.getElementById(
+                    "analysisProgressFill"
+                );
+
+            const value =
+                document.getElementById(
+                    "analysisProgressValue"
+                );
+
+            if (!fill || !value) {
+                return;
+            }
+
+            let progress = 68;
+
+            const timer =
+                setInterval(function () {
+
+                    progress += 4;
+
+                    if (progress >= 100) {
+
+                        progress = 100;
+
+                        clearInterval(timer);
+
+                    }
+
+                    fill.style.width =
+                        progress + "%";
+
+                    value.textContent =
+                        progress + "%";
+
+                }, 900);
+
+        }
+    );
+
+</script>
+
+
+</body>
+</html>

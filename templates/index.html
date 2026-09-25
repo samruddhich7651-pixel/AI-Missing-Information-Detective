@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* ==============================
+           DASHBOARD ONLY
+           ============================== */
+
+        .dashboard-hero {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            align-items: center;
+            gap: 28px;
+            min-height: 315px;
+        }
+
+        .dashboard-hero-text {
+            max-width: 530px;
+        }
+
+        .dashboard-hero-text .page-title {
+            font-size: 38px;
+            margin-top: 15px;
+        }
+
+        .dashboard-hero-text .page-subtitle {
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-hero-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-hero-image img {
+            width: 100%;
+            max-width: 440px;
+            height: auto;
+            display: block;
+            border-radius: 14px;
+        }
+
+        .dashboard-section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 13px;
+        }
+
+        .dashboard-section-head .section-title {
+            margin-top: 13px;
+            margin-bottom: 0;
+        }
+
+        .quick-grid.dashboard-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .dashboard-quick-card {
+            min-height: 135px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dashboard-quick-card .quick-icon {
+            margin-bottom: 9px;
+        }
+
+        .dashboard-quick-card p {
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+
+        .recent-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 13px;
+        }
+
+        .recent-heading .section-title {
+            margin: 0;
+        }
+
+        .recent-view {
+            font-size: 10px;
+            font-weight: 700;
+            color: #b84135;
+        }
+
+        .dashboard-note {
+            margin-top: 24px;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-hero-image {
+                order: -1;
+            }
+
+            .dashboard-hero-image img {
+                max-width: 360px;
+            }
+
+            .quick-grid.dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .dashboard-hero-text .page-title {
+                font-size: 29px;
+            }
+
+            .quick-grid.dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon">
+                🕵️
+            </div>
+
+            <div>
+                <h2>
+                    Missing Information<br>
+                    Detective
+                </h2>
+
+                <span>
+                    AI DOCUMENT INVESTIGATION
+                </span>
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="/" class="active">
+                <span class="icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/upload">
+                <span class="icon">▣</span>
+                <span>Analyze Document</span>
+            </a>
+
+            <a href="/history">
+                <span class="icon">◷</span>
+                <span>History</span>
+            </a>
+
+            <a href="/admin">
+                <span class="icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+            Every document leaves clues.
+            <br>
+            Find what's missing.
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main-area">
+
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div class="topbar-icon">
+                🔔
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <span class="profile-name">
+                    Samruddhi
+                </span>
+
+                <span class="profile-arrow">
+                    ▼
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE -->
+        <div class="page">
+
+
+            <!-- HERO -->
+            <section class="hero-card dashboard-hero">
+
+                <div class="dashboard-hero-text">
+
+                    <div class="sticky-note red">
+                        CASE DETECTIVE
+                    </div>
+
+                    <h1 class="page-title">
+                        Find What Your<br>
+                        Document Doesn't Say.
+                    </h1>
+
+                    <p class="page-subtitle">
+                        Upload a document and let the AI detective
+                        uncover missing information, unclear details
+                        and questions that still need answers.
+                    </p>
+
+                    <a href="/upload"
+                       class="btn btn-primary">
+                        🔎 Analyze a Document
+                    </a>
+
+                </div>
+
+
+                <div class="dashboard-hero-image">
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='images/02_dashboard_hero.png'
+                        ) }}"
+                        alt="AI Missing Information Detective"
+                    >
+
+                </div>
+
+            </section>
+
+
+            <!-- QUICK START -->
+            <section class="section">
+
+                <div class="dashboard-section-head">
+
+                    <div>
+
+                        <div class="sticky-note">
+                            QUICK START
+                        </div>
+
+                        <h2 class="section-title">
+                            Investigation Tools
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="quick-grid dashboard-grid">
+
+
+                    <!-- JOB OFFER -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                💼
+                            </div>
+
+                            <h3>
+                                Job Offer
+                            </h3>
+
+                            <p>
+                                Check employment details
+                                and missing terms.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+
+                    <!-- COLLEGE -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                🎓
+                            </div>
+
+                            <h3>
+                                College Notice
+                            </h3>
+
+                            <p>
+                                Find missing dates,
+                                rules and instructions.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+
+                    <!-- LEGAL -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                ⚖️
+                            </div>
+
+                            <h3>
+                                Legal
+                            </h3>
+
+                            <p>
+                                Detect unclear clauses
+                                and obligations.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+
+                    <!-- FINANCE -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                💰
+                            </div>
+
+                            <h3>
+                                Finance
+                            </h3>
+
+                            <p>
+                                Review costs, amounts
+                                and missing terms.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+
+                    <!-- RENTAL -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                🏠
+                            </div>
+
+                            <h3>
+                                Rental Agreement
+                            </h3>
+
+                            <p>
+                                Check rent, deposit
+                                and agreement details.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+
+                    <!-- GENERAL -->
+                    <a href="/upload"
+                       class="quick-card dashboard-quick-card">
+
+                        <div>
+
+                            <div class="quick-icon">
+                                📄
+                            </div>
+
+                            <h3>
+                                General
+                            </h3>
+
+                            <p>
+                                Investigate any document
+                                for missing information.
+                            </p>
+
+                        </div>
+
+                        <span class="quick-link">
+                            Analyze →
+                        </span>
+
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- RECENT ANALYSES -->
+            <section class="section">
+
+                <div class="recent-heading">
+
+                    <h2 class="section-title">
+                        Recent Analyses
+                    </h2>
+
+                    <a href="/history"
+                       class="recent-view">
+                        View all →
+                    </a>
+
+                </div>
+
+
+                <div class="paper-panel">
+
+                    <div class="recent-list">
+
+
+                        <div class="recent-item">
+
+                            <div class="recent-icon">
+                                💼
+                            </div>
+
+                            <div class="recent-info">
+
+                                <div class="recent-name">
+                                    Job Offer Letter
+                                </div>
+
+                                <div class="recent-meta">
+                                    82% complete
+                                </div>
+
+                            </div>
+
+                            <div class="recent-time">
+                                2 hours ago
+                            </div>
+
+                        </div>
+
+
+                        <div class="recent-item">
+
+                            <div class="recent-icon">
+                                🎓
+                            </div>
+
+                            <div class="recent-info">
+
+                                <div class="recent-name">
+                                    College Notice.pdf
+                                </div>
+
+                                <div class="recent-meta">
+                                    64% complete
+                                </div>
+
+                            </div>
+
+                            <div class="recent-time">
+                                5 hours ago
+                            </div>
+
+                        </div>
+
+
+                        <div class="recent-item">
+
+                            <div class="recent-icon">
+                                🏠
+                            </div>
+
+                            <div class="recent-info">
+
+                                <div class="recent-name">
+                                    Rental Agreement
+                                </div>
+
+                                <div class="recent-meta">
+                                    76% complete
+                                </div>
+
+                            </div>
+
+                            <div class="recent-time">
+                                1 day ago
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- NOTE -->
+            <section class="section dashboard-note">
+
+                <div class="sticky-note">
+                    Every document leaves clues.
+                    Find what's missing.
+                </div>
+
+            </section>
+
+
+            <div class="footer">
+                AI Missing Information Detective · Investigation Dashboard
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

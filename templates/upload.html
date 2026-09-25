@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Upload Document | AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"
+            defer></script>
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon"></div>
+
+            <div>
+                <h2>Missing Info</h2>
+                <span>DETECTIVE</span>
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}">
+                <span class="icon">🏠</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('upload') }}" class="active">
+                <span class="icon">📄</span>
+                <span>New Investigation</span>
+            </a>
+
+            <a href="{{ url_for('history') }}">
+                <span class="icon">🕵️</span>
+                <span>Investigation History</span>
+            </a>
+
+            <a href="{{ url_for('admin') }}">
+                <span class="icon">📊</span>
+                <span>Admin Panel</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+
+            CASE FILE<br>
+
+            Find what the document<br>
+            forgot to tell you.
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN AREA
+    ====================================================== -->
+
+    <main class="main-area">
+
+
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+
+            <div class="topbar-icon">
+                🔍
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <div class="profile-name">
+                    Detective
+                </div>
+
+                <div class="profile-arrow">
+                    ▼
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PAGE -->
+
+        <div class="page">
+
+
+            <!-- PAGE HEADER -->
+
+            <div class="page-header">
+
+                <div class="sticky-note">
+                    NEW CASE
+                </div>
+
+                <h1 class="page-title">
+                    Analyze a Document
+                </h1>
+
+                <p class="page-subtitle">
+                    Upload, paste, or provide a URL and let AI investigate the details.
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 MAIN FORM PANEL
+            ================================================== -->
+
+            <div class="paper-panel form-card">
+
+
+                <!-- INPUT TYPE TABS -->
+
+                <div class="input-type-grid">
+
+
+                    <button type="button"
+                            class="input-type active"
+                            data-method="file">
+
+                        <div class="input-type-icon">
+                            📄
+                        </div>
+
+                        <span>
+                            File Upload
+                        </span>
+
+                    </button>
+
+
+
+                    <button type="button"
+                            class="input-type"
+                            data-method="image">
+
+                        <div class="input-type-icon">
+                            🖼️
+                        </div>
+
+                        <span>
+                            Image
+                        </span>
+
+                    </button>
+
+
+
+                    <button type="button"
+                            class="input-type"
+                            data-method="text">
+
+                        <div class="input-type-icon">
+                            ✍️
+                        </div>
+
+                        <span>
+                            Text
+                        </span>
+
+                    </button>
+
+
+
+                    <button type="button"
+                            class="input-type"
+                            data-method="url">
+
+                        <div class="input-type-icon">
+                            🔗
+                        </div>
+
+                        <span>
+                            URL
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     FORM
+                ================================================== -->
+
+                <form action="{{ url_for('generate_analysis') }}"
+                      method="POST"
+                      enctype="multipart/form-data"
+                      id="analysis-form">
+
+
+                    <!-- =============================================
+                         FILE
+                    ============================================== -->
+
+                    <div id="file-section">
+
+                        <div class="drop-zone">
+
+                            <div class="drop-zone-icon">
+                                📄
+                            </div>
+
+                            <h3>
+                                Upload your document
+                            </h3>
+
+                            <p>
+                                PDF, DOCX or TXT files
+                            </p>
+
+
+                            <label class="btn btn-primary">
+
+                                Choose File
+
+                                <input type="file"
+                                       id="document_file"
+                                       name="document"
+                                       accept=".pdf,.docx,.txt"
+                                       style="display:none;">
+
+                            </label>
+
+
+                            <div class="upload-file-name"
+                                 style="margin-top:10px;
+                                        font-size:10px;
+                                        color:#718087;">
+
+                                No file selected
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         IMAGE
+                    ============================================== -->
+
+                    <div id="image-section"
+                         style="display:none;">
+
+                        <div class="drop-zone">
+
+                            <div class="drop-zone-icon">
+                                🖼️
+                            </div>
+
+                            <h3>
+                                Upload an image
+                            </h3>
+
+                            <p>
+                                JPG, JPEG or PNG
+                            </p>
+
+
+                            <label class="btn btn-primary">
+
+                                Choose Image
+
+                                <input type="file"
+                                       id="image_file"
+                                       name="document"
+                                       accept=".jpg,.jpeg,.png"
+                                       style="display:none;">
+
+                            </label>
+
+
+                            <div class="image-file-name"
+                                 style="margin-top:10px;
+                                        font-size:10px;
+                                        color:#718087;">
+
+                                No image selected
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         TEXT
+                    ============================================== -->
+
+                    <div id="text-section"
+                         style="display:none;">
+
+                        <div class="form-group">
+
+                            <label class="form-label">
+                                Paste Document Text
+                            </label>
+
+                            <textarea
+                                name="document_text"
+                                class="form-control"
+                                style="min-height:220px;"
+                                placeholder="Paste the document content here..."></textarea>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         URL
+                    ============================================== -->
+
+                    <div id="url-section"
+                         style="display:none;">
+
+                        <div class="form-group">
+
+                            <label class="form-label">
+                                Enter Document / Webpage URL
+                            </label>
+
+                            <input
+                                type="text"
+                                id="document_url"
+                                name="document_url"
+                                class="form-control"
+                                placeholder="https://example.com/document">
+
+                            <p style="margin-top:8px;
+                                      color:#718087;
+                                      font-size:10px;">
+
+                                The AI will read the webpage or linked PDF
+                                and analyze it for missing information.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- DOCUMENT NAME -->
+
+                    <input type="hidden"
+                           name="document_name"
+                           value="Untitled Investigation">
+
+
+
+                    <!-- ANALYZE BUTTON -->
+
+                    <div style="margin-top:20px;">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            🔎
+                            Analyze Document
+
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+
+            </div>
+
+
+
+            <!-- SUPPORTED TYPES -->
+
+            <div style="margin-top:12px;">
+
+                <span class="badge">
+                    PDF
+                </span>
+
+                <span class="badge">
+                    DOCX
+                </span>
+
+                <span class="badge">
+                    TXT
+                </span>
+
+                <span class="badge">
+                    JPG
+                </span>
+
+                <span class="badge">
+                    PNG
+                </span>
+
+                <span class="badge">
+                    WEB URL
+                </span>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     TAB SWITCHING
+========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const tabs = document.querySelectorAll(".input-type");
+
+    const sections = {
+        file: document.getElementById("file-section"),
+        image: document.getElementById("image-section"),
+        text: document.getElementById("text-section"),
+        url: document.getElementById("url-section")
+    };
+
+
+    tabs.forEach(function (tab) {
+
+        tab.addEventListener("click", function () {
+
+            const method = this.dataset.method;
+
+
+            tabs.forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+
+            this.classList.add("active");
+
+
+            Object.values(sections).forEach(function (section) {
+
+                if (section) {
+                    section.style.display = "none";
+                }
+
+            });
+
+
+            if (sections[method]) {
+                sections[method].style.display = "block";
+            }
+
+        });
+
+    });
+
+
+
+    /* FILE NAME */
+
+    const fileInput =
+        document.getElementById("document_file");
+
+    const fileName =
+        document.querySelector(".upload-file-name");
+
+
+    if (fileInput && fileName) {
+
+        fileInput.addEventListener("change", function () {
+
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+            } else {
+                fileName.textContent = "No file selected";
+            }
+
+        });
+
+    }
+
+
+
+    /* IMAGE NAME */
+
+    const imageInput =
+        document.getElementById("image_file");
+
+    const imageName =
+        document.querySelector(".image-file-name");
+
+
+    if (imageInput && imageName) {
+
+        imageInput.addEventListener("change", function () {
+
+            if (this.files.length > 0) {
+                imageName.textContent = this.files[0].name;
+            } else {
+                imageName.textContent = "No image selected";
+            }
+
+        });
+
+    }
+
+
+
+    /* FORM VALIDATION */
+
+    const form =
+        document.getElementById("analysis-form");
+
+
+    if (form) {
+
+        form.addEventListener("submit", function (event) {
+
+            const fileInput =
+                document.getElementById("document_file");
+
+            const imageInput =
+                document.getElementById("image_file");
+
+            const textInput =
+                document.querySelector(
+                    'textarea[name="document_text"]'
+                );
+
+            const urlInput =
+                document.getElementById("document_url");
+
+
+            const hasFile =
+                fileInput &&
+                fileInput.files.length > 0;
+
+
+            const hasImage =
+                imageInput &&
+                imageInput.files.length > 0;
+
+
+            const hasText =
+                textInput &&
+                textInput.value.trim() !== "";
+
+
+            const hasURL =
+                urlInput &&
+                urlInput.value.trim() !== "";
+
+
+            if (
+                !hasFile &&
+                !hasImage &&
+                !hasText &&
+                !hasURL
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please provide a file, image, text, or URL."
+                );
+
+            }
+
+        });
+
+    }
+
+});
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analysis History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .history-page {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .history-title {
+            font-family: "Playfair Display", serif;
+            font-size: 27px;
+            color: #18232b;
+            margin-bottom: 5px;
+        }
+
+        .history-subtitle {
+            color: #718087;
+            font-size: 10px;
+            margin-bottom: 18px;
+        }
+
+        .history-card {
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(22,31,38,.05);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            background: #f5eee3;
+            color: #68747a;
+            font-size: 8px;
+            text-align: left;
+            padding: 11px 10px;
+            font-weight: 700;
+        }
+
+        .history-table td {
+            padding: 12px 10px;
+            border-top: 1px solid #eee6da;
+            font-size: 9px;
+            color: #46545c;
+            vertical-align: middle;
+        }
+
+        .document-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .document-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 6px;
+            background: #f8ddd7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .document-name {
+            font-weight: 700;
+            color: #27343d;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .document-file {
+            color: #8a9498;
+            font-size: 7px;
+            margin-top: 2px;
+        }
+
+        .category-badge {
+            display: inline-flex;
+            padding: 4px 7px;
+            border-radius: 12px;
+            background: #edf2f5;
+            color: #50616b;
+            font-size: 7px;
+            font-weight: 700;
+        }
+
+        .score-badge {
+            display: inline-flex;
+            padding: 4px 7px;
+            border-radius: 12px;
+            font-size: 7px;
+            font-weight: 700;
+        }
+
+        .score-good {
+            background: #dceede;
+            color: #397050;
+        }
+
+        .score-medium {
+            background: #f7e7bd;
+            color: #8a6500;
+        }
+
+        .score-low {
+            background: #f8ddd7;
+            color: #a52d24;
+        }
+
+        .view-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 5px 8px;
+
+            border: 1px solid #cbd5da;
+            border-radius: 6px;
+
+            background: #fffdf8;
+            color: #40515a;
+
+            font-size: 7px;
+            font-weight: 700;
+        }
+
+        .view-button:hover {
+            background: #edf4fb;
+            border-color: #9bb9d3;
+        }
+
+        .history-note {
+            margin-top: 15px;
+
+            padding: 13px 15px;
+
+            background: #f7edcd;
+            border: 1px solid #ead79f;
+            border-radius: 9px;
+
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .history-note-icon {
+            width: 28px;
+            height: 28px;
+
+            border-radius: 50%;
+
+            background: #fff5da;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #9a7314;
+            font-size: 13px;
+
+            flex-shrink: 0;
+        }
+
+        .history-note-text strong {
+            display: block;
+            color: #715717;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .history-note-text p {
+            color: #796a43;
+            font-size: 8px;
+            line-height: 1.5;
+        }
+
+        .empty-history {
+            padding: 30px;
+            text-align: center;
+            color: #718087;
+            font-size: 10px;
+        }
+
+        @media (max-width: 720px) {
+
+            .history-card {
+                overflow-x: auto;
+            }
+
+            .history-table {
+                min-width: 650px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon">
+                🕵️
+            </div>
+
+            <div>
+
+                <h2>
+                    Missing Information<br>
+                    Detective
+                </h2>
+
+                <span>
+                    AI DOCUMENT INVESTIGATION
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="/">
+                <span class="icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/upload">
+                <span class="icon">▣</span>
+                <span>Analyze Document</span>
+            </a>
+
+            <a href="/history" class="active">
+                <span class="icon">◷</span>
+                <span>History</span>
+            </a>
+
+            <a href="/admin">
+                <span class="icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+            Case history<br>
+            tells the story.
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main-area">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div class="topbar-icon">
+                🔔
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <span class="profile-name">
+                    Samruddhi
+                </span>
+
+                <span class="profile-arrow">
+                    ▼
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE -->
+
+        <div class="page">
+
+            <div class="history-page">
+
+
+                <h1 class="history-title">
+                    Analysis History
+                </h1>
+
+
+                <p class="history-subtitle">
+                    View your past analyses and reports.
+                </p>
+
+
+                <!-- HISTORY TABLE -->
+
+                <div class="history-card">
+
+                    {% if analyses %}
+
+                    <table class="history-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Document Name
+                                </th>
+
+                                <th>
+                                    Category
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Completeness
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for item in analyses %}
+
+                            <tr>
+
+
+                                <!-- DOCUMENT -->
+
+                                <td>
+
+                                    <div class="document-cell">
+
+                                        <div class="document-icon">
+                                            📄
+                                        </div>
+
+                                        <div>
+
+                                            <div class="document-name">
+                                                {{ item.document_name }}
+                                            </div>
+
+                                            <div class="document-file">
+                                                Investigation record
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- CATEGORY -->
+
+                                <td>
+
+                                    <span class="category-badge">
+                                        Document
+                                    </span>
+
+                                </td>
+
+
+                                <!-- DATE -->
+
+                                <td>
+                                    {{ item.created_at }}
+                                </td>
+
+
+                                <!-- SCORE -->
+
+                                <td>
+
+                                    {% set score =
+                                        item.completeness_score or 0 %}
+
+
+                                    {% if score >= 75 %}
+
+                                    <span class="score-badge score-good">
+                                        {{ score|int }}%
+                                    </span>
+
+
+                                    {% elif score >= 50 %}
+
+                                    <span class="score-badge score-medium">
+                                        {{ score|int }}%
+                                    </span>
+
+
+                                    {% else %}
+
+                                    <span class="score-badge score-low">
+                                        {{ score|int }}%
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- VIEW ACTUAL SAVED REPORT -->
+
+                                <td>
+
+                                    <a href="{{ url_for('view_history_analysis', analysis_id=item.id) }}"
+                                       class="view-button">
+
+                                        View
+
+                                    </a>
+
+                                </td>
+
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+
+                    {% else %}
+
+
+                    <div class="empty-history">
+
+                        No investigations found yet.
+
+                    </div>
+
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- NOTE -->
+
+                <div class="history-note">
+
+                    <div class="history-note-icon">
+                        ◷
+                    </div>
+
+                    <div class="history-note-text">
+
+                        <strong>
+                            Good to know
+                        </strong>
+
+                        <p>
+                            Your analysis history is saved locally.
+                            You can open any previous investigation
+                            and view its saved AI report.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="footer">
+                    AI Missing Information Detective · Analysis History
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

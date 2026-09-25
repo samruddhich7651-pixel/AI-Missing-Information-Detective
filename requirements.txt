@@ -1,0 +1,7 @@
+Flask
+google-genai
+python-dotenv
+pypdf
+python-docx
+requests
+beautifulsoup4

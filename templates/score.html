@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Completeness Score | AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .score-page {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .score-title {
+            font-family: "Playfair Display", serif;
+            font-size: 27px;
+            color: #18232b;
+            margin-bottom: 18px;
+        }
+
+        .score-top {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .score-card {
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 13px rgba(22,31,38,.05);
+        }
+
+        .score-main {
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: #f0e7dc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: "";
+            position: absolute;
+            width: 108px;
+            height: 108px;
+            background: #fffdf8;
+            border-radius: 50%;
+        }
+
+        .score-circle-value {
+            position: relative;
+            z-index: 1;
+            font-family: "Playfair Display", serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #18232b;
+        }
+
+        .score-status {
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .summary-title,
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #27343d;
+            margin-bottom: 12px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid #eee6da;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-name {
+            font-size: 9px;
+            color: #66737a;
+        }
+
+        .summary-value {
+            font-size: 9px;
+            font-weight: 700;
+            color: #27343d;
+        }
+
+        .summary-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .summary-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-evidence {
+            background: #4e9b72;
+        }
+
+        .dot-missing {
+            background: #d94b3d;
+        }
+
+        .dot-unclear {
+            background: #e3a53b;
+        }
+
+        .dot-contradiction {
+            background: #9b2c2c;
+        }
+
+        .dot-question {
+            background: #557da5;
+        }
+
+        .priority-section {
+            margin-top: 15px;
+        }
+
+        .priority-boxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .priority-box {
+            padding: 13px;
+            border-radius: 9px;
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+        }
+
+        .priority-number {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .priority-label {
+            font-size: 8px;
+            color: #68747a;
+        }
+
+        .critical-box {
+            border-top: 4px solid #c0392b;
+        }
+
+        .critical-box .priority-number {
+            color: #a52d24;
+        }
+
+        .important-box {
+            border-top: 4px solid #e67e22;
+        }
+
+        .important-box .priority-number {
+            color: #8a6500;
+        }
+
+        .optional-box {
+            border-top: 4px solid #3d8b55;
+        }
+
+        .optional-box .priority-number {
+            color: #397050;
+        }
+
+        .findings-card {
+            margin-top: 15px;
+        }
+
+        .finding {
+            display: flex;
+            gap: 9px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee6da;
+        }
+
+        .finding:last-child {
+            border-bottom: none;
+        }
+
+        .finding-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .critical-icon {
+            background: #f8ddd7;
+            color: #a52d24;
+        }
+
+        .important-icon {
+            background: #f7e7bd;
+            color: #8a6500;
+        }
+
+        .optional-icon {
+            background: #dceede;
+            color: #397050;
+        }
+
+        .finding-text {
+            font-size: 9px;
+            color: #59666d;
+            line-height: 1.5;
+        }
+
+        .summary-card {
+            margin-top: 15px;
+            background: #eaf1f8;
+            border: 1px solid #c9dced;
+            border-radius: 9px;
+            padding: 13px;
+        }
+
+        .summary-card strong {
+            display: block;
+            color: #244c6f;
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            color: #617481;
+            font-size: 8px;
+            line-height: 1.5;
+        }
+
+        .score-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .empty-card {
+            text-align: center;
+            padding: 30px;
+        }
+
+        @media (max-width: 680px) {
+
+            .score-top {
+                grid-template-columns: 1fr;
+            }
+
+            .priority-boxes {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon">
+                🕵️
+            </div>
+
+            <div>
+
+                <h2>
+                    Missing Information<br>
+                    Detective
+                </h2>
+
+                <span>
+                    AI DOCUMENT INVESTIGATION
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="/">
+                <span class="icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/upload">
+                <span class="icon">▣</span>
+                <span>Analyze Document</span>
+            </a>
+
+            <a href="/history">
+                <span class="icon">◷</span>
+                <span>History</span>
+            </a>
+
+            <a href="/admin">
+                <span class="icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+            More clarity.<br>
+            Better decisions.
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main-area">
+
+
+        <header class="topbar">
+
+            <div class="topbar-icon">
+                🔔
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <span class="profile-name">
+                    Samruddhi
+                </span>
+
+                <span class="profile-arrow">
+                    ▼
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <div class="page">
+
+            <div class="score-page">
+
+
+                <h1 class="score-title">
+                    Document Completeness
+                </h1>
+
+
+                {% if analysis %}
+
+                    {% set score = analysis.get("completeness_score", 0) %}
+                    {% set evidence = analysis.get("evidence", []) %}
+                    {% set missing = analysis.get("missing_information", []) %}
+                    {% set unclear = analysis.get("unclear_information", []) %}
+                    {% set contradictions = analysis.get("contradictions", []) %}
+                    {% set questions = analysis.get("questions", []) %}
+
+                    {% set priority = analysis.get("priority", {}) %}
+                    {% set critical = priority.get("critical", []) %}
+                    {% set important = priority.get("important", []) %}
+                    {% set optional = priority.get("optional", []) %}
+
+
+                    <!-- SCORE + SUMMARY -->
+
+                    <div class="score-top">
+
+                        <div class="score-card score-main">
+
+                            <div class="score-circle">
+
+                                <div class="score-circle-value">
+                                    {{ score }}%
+                                </div>
+
+                            </div>
+
+
+                            {% if score >= 90 %}
+
+                                <div class="score-status"
+                                     style="color:#3d8b55;">
+                                    Very Complete
+                                </div>
+
+                            {% elif score >= 75 %}
+
+                                <div class="score-status"
+                                     style="color:#3d8b55;">
+                                    Mostly Complete
+                                </div>
+
+                            {% elif score >= 50 %}
+
+                                <div class="score-status"
+                                     style="color:#b27616;">
+                                    Needs Attention
+                                </div>
+
+                            {% else %}
+
+                                <div class="score-status"
+                                     style="color:#c0392b;">
+                                    Significant Gaps
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="score-card">
+
+                            <div class="summary-title">
+                                Information Summary
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <div class="summary-left">
+                                    <span class="summary-dot dot-evidence"></span>
+                                    <span class="summary-name">
+                                        Evidence Found
+                                    </span>
+                                </div>
+
+                                <span class="summary-value">
+                                    {{ evidence|length }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <div class="summary-left">
+                                    <span class="summary-dot dot-missing"></span>
+                                    <span class="summary-name">
+                                        Missing
+                                    </span>
+                                </div>
+
+                                <span class="summary-value">
+                                    {{ missing|length }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <div class="summary-left">
+                                    <span class="summary-dot dot-unclear"></span>
+                                    <span class="summary-name">
+                                        Unclear
+                                    </span>
+                                </div>
+
+                                <span class="summary-value">
+                                    {{ unclear|length }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <div class="summary-left">
+                                    <span class="summary-dot dot-contradiction"></span>
+                                    <span class="summary-name">
+                                        Contradictions
+                                    </span>
+                                </div>
+
+                                <span class="summary-value">
+                                    {{ contradictions|length }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="summary-row">
+
+                                <div class="summary-left">
+                                    <span class="summary-dot dot-question"></span>
+                                    <span class="summary-name">
+                                        Questions
+                                    </span>
+                                </div>
+
+                                <span class="summary-value">
+                                    {{ questions|length }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PRIORITY -->
+
+                    <div class="priority-section">
+
+                        <div class="score-card">
+
+                            <div class="section-title">
+                                Investigation Priority
+                            </div>
+
+
+                            <div class="priority-boxes">
+
+                                <div class="priority-box critical-box">
+
+                                    <span class="priority-number">
+                                        {{ critical|length }}
+                                    </span>
+
+                                    <span class="priority-label">
+                                        Critical
+                                    </span>
+
+                                </div>
+
+
+                                <div class="priority-box important-box">
+
+                                    <span class="priority-number">
+                                        {{ important|length }}
+                                    </span>
+
+                                    <span class="priority-label">
+                                        Important
+                                    </span>
+
+                                </div>
+
+
+                                <div class="priority-box optional-box">
+
+                                    <span class="priority-number">
+                                        {{ optional|length }}
+                                    </span>
+
+                                    <span class="priority-label">
+                                        Optional
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FINDINGS -->
+
+                    <div class="score-card findings-card">
+
+                        <div class="section-title">
+                            Key Findings
+                        </div>
+
+
+                        {% if critical %}
+
+                            {% for item in critical %}
+
+                            <div class="finding">
+
+                                <div class="finding-icon critical-icon">
+                                    !
+                                </div>
+
+                                <div class="finding-text">
+                                    {{ item }}
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        {% endif %}
+
+
+                        {% if important %}
+
+                            {% for item in important %}
+
+                            <div class="finding">
+
+                                <div class="finding-icon important-icon">
+                                    !
+                                </div>
+
+                                <div class="finding-text">
+                                    {{ item }}
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        {% endif %}
+
+
+                        {% if optional %}
+
+                            {% for item in optional %}
+
+                            <div class="finding">
+
+                                <div class="finding-icon optional-icon">
+                                    +
+                                </div>
+
+                                <div class="finding-text">
+                                    {{ item }}
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        {% endif %}
+
+
+                        {% if not critical and not important and not optional %}
+
+                            <div class="finding-text">
+                                No prioritized findings were detected.
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- SUMMARY -->
+
+                    <div class="summary-card">
+
+                        <strong>
+                            Investigation Summary
+                        </strong>
+
+
+                        <p>
+
+                            {% if contradictions %}
+
+                                The analysis found
+                                {{ contradictions|length }}
+                                contradiction(s) that should be reviewed.
+
+                            {% elif missing and unclear %}
+
+                                The document contains
+                                {{ missing|length }}
+                                missing and
+                                {{ unclear|length }}
+                                unclear information item(s).
+
+                            {% elif missing %}
+
+                                The document contains
+                                {{ missing|length }}
+                                missing information item(s).
+
+                            {% elif unclear %}
+
+                                The document contains
+                                {{ unclear|length }}
+                                unclear information item(s).
+
+                            {% else %}
+
+                                No major information gaps were detected.
+
+                            {% endif %}
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- ACTIONS -->
+
+                    <div class="score-actions">
+
+                        <a href="/results"
+                           class="btn btn-secondary">
+
+                            ← Back to Findings
+
+                        </a>
+
+                        <a href="/questions"
+                           class="btn btn-primary">
+
+                            View Smart Questions →
+
+                        </a>
+
+                    </div>
+
+
+                    <div class="footer">
+                        AI Missing Information Detective · Completeness Score
+                    </div>
+
+
+                {% else %}
+
+
+                    <div class="score-card empty-card">
+
+                        <h3>
+                            No analysis available
+                        </h3>
+
+                        <p>
+                            Start a new investigation first.
+                        </p>
+
+                        <br>
+
+                        <a href="/upload"
+                           class="btn btn-primary">
+
+                            Start Investigation →
+
+                        </a>
+
+                    </div>
+
+
+                {% endif %}
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+
+</html>

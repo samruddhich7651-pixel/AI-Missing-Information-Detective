@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analysis Results | AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            🕵️
+            <span>Missing Info<br>Detective</span>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('home') }}">
+                🏠 Dashboard
+            </a>
+
+            <a href="{{ url_for('upload') }}">
+                📄 New Investigation
+            </a>
+
+            <a href="{{ url_for('history') }}">
+                🕘 History
+            </a>
+
+            <a href="{{ url_for('admin') }}">
+                🛠️ Admin
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <div class="page-header">
+
+            <div>
+                <p class="eyebrow">CASE FILE</p>
+
+                <h1>Investigation Results</h1>
+
+                <p class="page-subtitle">
+                    AI analysis of {{ document_name }}
+                </p>
+            </div>
+
+            <a href="{{ url_for('upload') }}"
+               class="primary-btn">
+                + New Investigation
+            </a>
+
+        </div>
+
+
+        {% if analysis %}
+
+        <!-- SCORE -->
+        <section class="result-score-card">
+
+            <div>
+                <p class="eyebrow">EVIDENCE COVERAGE</p>
+
+                <h2>
+                    {{ analysis.get("completeness_score", 0) }}%
+                </h2>
+
+                <p>
+                    Overall document completeness
+                </p>
+            </div>
+
+            <div class="score-circle">
+                {{ analysis.get("completeness_score", 0) }}%
+            </div>
+
+        </section>
+
+
+        <!-- PRIORITY -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">PRIORITY</p>
+                    <h2>Investigation Priorities</h2>
+                </div>
+
+            </div>
+
+
+            <div class="priority-grid">
+
+                <!-- CRITICAL -->
+                <div class="priority-card critical">
+
+                    <div class="priority-header">
+                        <span class="priority-icon">🔴</span>
+
+                        <div>
+                            <h3>Critical</h3>
+                            <p>Needs immediate attention</p>
+                        </div>
+                    </div>
+
+                    {% set critical_items =
+                        analysis.get("priority", {}).get("critical", []) %}
+
+                    {% if critical_items %}
+
+                    <ul>
+                        {% for item in critical_items %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No critical issues detected.
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- IMPORTANT -->
+                <div class="priority-card important">
+
+                    <div class="priority-header">
+                        <span class="priority-icon">🟠</span>
+
+                        <div>
+                            <h3>Important</h3>
+                            <p>Should be reviewed</p>
+                        </div>
+                    </div>
+
+                    {% set important_items =
+                        analysis.get("priority", {}).get("important", []) %}
+
+                    {% if important_items %}
+
+                    <ul>
+                        {% for item in important_items %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No important issues detected.
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- OPTIONAL -->
+                <div class="priority-card optional">
+
+                    <div class="priority-header">
+                        <span class="priority-icon">🟢</span>
+
+                        <div>
+                            <h3>Optional</h3>
+                            <p>Useful additional details</p>
+                        </div>
+                    </div>
+
+                    {% set optional_items =
+                        analysis.get("priority", {}).get("optional", []) %}
+
+                    {% if optional_items %}
+
+                    <ul>
+                        {% for item in optional_items %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No optional issues detected.
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- EVIDENCE TRAIL -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">CASE CONNECTION</p>
+                    <h2>Evidence Trail</h2>
+
+                    <p class="trail-description">
+                        Review the evidence, information gaps and questions identified by the AI.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="evidence-trail">
+
+
+                <!-- EVIDENCE -->
+                <div class="trail-column">
+
+                    <div class="trail-column-header verified-header">
+                        <span class="trail-number">01</span>
+
+                        <div>
+                            <h3>Evidence Found</h3>
+                            <p>Information already present</p>
+                        </div>
+                    </div>
+
+
+                    {% if analysis.get("evidence") %}
+
+                        {% for item in analysis.get("evidence") %}
+
+                        <div class="trail-card verified-trail">
+
+                            <span class="status-label verified">
+                                VERIFIED
+                            </span>
+
+                            <p>{{ item }}</p>
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <div class="trail-empty">
+                            No evidence detected.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- GAPS -->
+                <div class="trail-column">
+
+                    <div class="trail-column-header missing-header">
+                        <span class="trail-number">02</span>
+
+                        <div>
+                            <h3>Information Gaps</h3>
+                            <p>What needs attention</p>
+                        </div>
+                    </div>
+
+
+                    {% if analysis.get("missing_information") %}
+
+                        {% for item in analysis.get("missing_information") %}
+
+                        <div class="trail-card missing-trail">
+
+                            <span class="status-label missing">
+                                MISSING
+                            </span>
+
+                            <p>{{ item }}</p>
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+
+                    {% if analysis.get("unclear_information") %}
+
+                        {% for item in analysis.get("unclear_information") %}
+
+                        <div class="trail-card unclear-trail">
+
+                            <span class="status-label unclear">
+                                UNCLEAR
+                            </span>
+
+                            <p>{{ item }}</p>
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+
+                    {% if not analysis.get("missing_information")
+                          and not analysis.get("unclear_information") %}
+
+                        <div class="trail-empty">
+                            No information gaps detected.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- QUESTIONS -->
+                <div class="trail-column">
+
+                    <div class="trail-column-header question-header">
+                        <span class="trail-number">03</span>
+
+                        <div>
+                            <h3>Questions to Ask</h3>
+                            <p>Next investigation questions</p>
+                        </div>
+                    </div>
+
+
+                    {% if analysis.get("questions") %}
+
+                        {% for question in analysis.get("questions") %}
+
+                        <div class="trail-card question-trail">
+
+                            <span class="question-mark">?</span>
+
+                            <p>{{ question }}</p>
+
+                        </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <div class="trail-empty">
+                            No questions generated.
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MISSING INFORMATION -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">MISSING</p>
+                    <h2>Missing Information</h2>
+                </div>
+
+            </div>
+
+
+            <div class="evidence-grid">
+
+                {% if analysis.get("missing_information") %}
+
+                    {% for item in analysis.get("missing_information") %}
+
+                    <div class="evidence-card missing-card">
+
+                        <span class="status-label missing">
+                            MISSING
+                        </span>
+
+                        <p>{{ item }}</p>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-card">
+                        No missing information detected.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- UNCLEAR INFORMATION -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">UNCLEAR</p>
+                    <h2>Unclear Information</h2>
+                </div>
+
+            </div>
+
+
+            <div class="evidence-grid">
+
+                {% if analysis.get("unclear_information") %}
+
+                    {% for item in analysis.get("unclear_information") %}
+
+                    <div class="evidence-card unclear-card">
+
+                        <span class="status-label unclear">
+                            UNCLEAR
+                        </span>
+
+                        <p>{{ item }}</p>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-card">
+                        No unclear information detected.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- CONTRADICTIONS -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">CONTRADICTIONS</p>
+                    <h2>Conflicting Information</h2>
+                </div>
+
+            </div>
+
+
+            <div class="evidence-grid">
+
+                {% if analysis.get("contradictions") %}
+
+                    {% for item in analysis.get("contradictions") %}
+
+                    <div class="evidence-card contradiction-card">
+
+                        <span class="status-label contradiction">
+                            CONTRADICTION
+                        </span>
+
+                        <p>{{ item }}</p>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-card">
+                        No contradictions detected.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- EVIDENCE -->
+        <section class="results-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">VERIFIED</p>
+                    <h2>Evidence Found</h2>
+                </div>
+
+            </div>
+
+
+            <div class="evidence-grid">
+
+                {% if analysis.get("evidence") %}
+
+                    {% for item in analysis.get("evidence") %}
+
+                    <div class="evidence-card verified-card">
+
+                        <span class="status-label verified">
+                            VERIFIED
+                        </span>
+
+                        <p>{{ item }}</p>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-card">
+                        No evidence detected.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- QUESTIONS -->
+        <section class="results-section questions-preview">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">NEXT QUESTIONS</p>
+                    <h2>Questions to Ask</h2>
+                </div>
+
+                <a href="{{ url_for('questions') }}"
+                   class="secondary-btn">
+                    View All Questions →
+                </a>
+
+            </div>
+
+
+            <div class="question-list">
+
+                {% if analysis.get("questions") %}
+
+                    {% for question in analysis.get("questions")[:5] %}
+
+                    <div class="question-item">
+
+                        <span>?</span>
+
+                        <p>{{ question }}</p>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty-card">
+                        No questions generated.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+
+        <!-- ACTIONS -->
+        <section class="result-actions">
+
+            <a href="{{ url_for('questions') }}"
+               class="primary-btn">
+                ❓ View Questions
+            </a>
+
+            <a href="{{ url_for('score') }}"
+               class="secondary-btn">
+                📊 View Score
+            </a>
+
+            <a href="{{ url_for('history') }}"
+               class="secondary-btn">
+                🕘 View History
+            </a>
+
+        </section>
+
+
+        {% else %}
+
+        <div class="empty-card">
+
+            <h2>No analysis available</h2>
+
+            <p>
+                Start a new investigation to analyze a document.
+            </p>
+
+            <br>
+
+            <a href="{{ url_for('upload') }}"
+               class="primary-btn">
+                Start Investigation
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </main>
+
+</div>
+
+
+<style>
+
+.result-score-card {
+    background: #f8f1e4;
+    border: 1px solid #ded2bf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.result-score-card h2 {
+    font-size: 48px;
+    margin: 5px 0;
+}
+
+.score-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 8px solid #c65d3b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   PRIORITY
+   ========================================================= */
+
+.priority-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.priority-card {
+    padding: 22px;
+    border-radius: 16px;
+    border: 1px solid #ddd2c2;
+    background: #fffdf8;
+}
+
+.priority-card.critical {
+    border-top: 5px solid #c0392b;
+}
+
+.priority-card.important {
+    border-top: 5px solid #e67e22;
+}
+
+.priority-card.optional {
+    border-top: 5px solid #3d8b55;
+}
+
+.priority-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.priority-icon {
+    font-size: 25px;
+}
+
+.priority-card h3 {
+    margin: 0;
+}
+
+.priority-card p {
+    margin: 3px 0 0;
+}
+
+.priority-card ul {
+    padding-left: 20px;
+}
+
+.priority-card li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   EVIDENCE TRAIL
+   ========================================================= */
+
+.trail-description {
+    margin-top: 6px;
+    color: #6d7880;
+    font-size: 13px;
+}
+
+.evidence-trail {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    position: relative;
+}
+
+.trail-column {
+    background: #f8f1e4;
+    border: 1px solid #ded2bf;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.trail-column-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #ded2bf;
+}
+
+.trail-number {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #172536;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.trail-column-header h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.trail-column-header p {
+    margin: 3px 0 0;
+    font-size: 11px;
+    color: #77818a;
+}
+
+.verified-header .trail-number {
+    background: #3d8b55;
+}
+
+.missing-header .trail-number {
+    background: #c0392b;
+}
+
+.question-header .trail-number {
+    background: #c65d3b;
+}
+
+.trail-card {
+    background: #fffdf8;
+    border: 1px solid #ded2bf;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 11px;
+}
+
+.trail-card:last-child {
+    margin-bottom: 0;
+}
+
+.trail-card p {
+    margin: 4px 0 0;
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+.verified-trail {
+    border-left: 4px solid #3d8b55;
+}
+
+.missing-trail {
+    border-left: 4px solid #c0392b;
+}
+
+.unclear-trail {
+    border-left: 4px solid #d97706;
+}
+
+.question-trail {
+    border-left: 4px solid #c65d3b;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.question-mark {
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #172536;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.trail-empty {
+    background: #fffdf8;
+    border: 1px dashed #cfc2af;
+    border-radius: 12px;
+    padding: 18px;
+    color: #7b858d;
+    font-size: 13px;
+    text-align: center;
+}
+
+
+/* =========================================================
+   EVIDENCE CARDS
+   ========================================================= */
+
+.evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.evidence-card,
+.empty-card {
+    background: #fffdf8;
+    border: 1px solid #ded2bf;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.evidence-card p {
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+.status-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.status-label.missing {
+    color: #c0392b;
+}
+
+.status-label.unclear {
+    color: #d97706;
+}
+
+.status-label.contradiction {
+    color: #9b2c2c;
+}
+
+.status-label.verified {
+    color: #2f7d4a;
+}
+
+
+/* =========================================================
+   QUESTIONS
+   ========================================================= */
+
+.question-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.question-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px;
+    background: #fffdf8;
+    border: 1px solid #ded2bf;
+    border-radius: 12px;
+}
+
+.question-item span {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #172536;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.question-item p {
+    margin: 5px 0 0;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
+    .evidence-trail {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 900px) {
+
+    .priority-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .evidence-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-score-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
+</style>
+
+</body>
+</html>

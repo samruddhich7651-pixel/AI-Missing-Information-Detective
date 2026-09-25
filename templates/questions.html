@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Questions | AI Missing Information Detective</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+
+        .questions-page {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .questions-title {
+            font-family: "Playfair Display", serif;
+            font-size: 27px;
+            color: #18232b;
+            margin-bottom: 5px;
+        }
+
+        .questions-subtitle {
+            color: #718087;
+            font-size: 10px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        /* PRIORITY SUMMARY */
+
+        .question-priority-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .question-priority-box {
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+            border-radius: 9px;
+            padding: 12px;
+        }
+
+        .question-priority-box strong {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        .question-priority-box span {
+            font-size: 8px;
+            color: #718087;
+        }
+
+        .priority-critical {
+            border-top: 4px solid #c0392b;
+        }
+
+        .priority-critical strong {
+            color: #a52d24;
+        }
+
+        .priority-important {
+            border-top: 4px solid #e67e22;
+        }
+
+        .priority-important strong {
+            color: #8a6500;
+        }
+
+        .priority-optional {
+            border-top: 4px solid #3d8b55;
+        }
+
+        .priority-optional strong {
+            color: #397050;
+        }
+
+        /* QUESTION LIST */
+
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .smart-question {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+            border-radius: 9px;
+            padding: 11px 12px;
+            box-shadow: 0 3px 10px rgba(22,31,38,.04);
+            transition: .2s ease;
+        }
+
+        .smart-question:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(22,31,38,.07);
+        }
+
+        .question-number {
+            width: 25px;
+            height: 25px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #e8edf1;
+            color: #334550;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .question-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .question-text {
+            font-size: 10px;
+            font-weight: 600;
+            color: #27343d;
+            line-height: 1.45;
+        }
+
+        .question-arrow {
+            color: #899297;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        /* PRIORITY LABEL */
+
+        .question-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 7px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .label-critical {
+            background: #f8ddd7;
+            color: #a52d24;
+        }
+
+        .label-important {
+            background: #f7e7bd;
+            color: #8a6500;
+        }
+
+        .label-optional {
+            background: #dceede;
+            color: #397050;
+        }
+
+        /* TIP */
+
+        .question-tip {
+            margin-top: 14px;
+            padding: 12px 13px;
+            background: #eaf1f8;
+            border: 1px solid #c9dced;
+            border-radius: 9px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .tip-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #d6e5f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #285c92;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .tip-content strong {
+            display: block;
+            color: #244c6f;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .tip-content p {
+            color: #617481;
+            font-size: 8px;
+            line-height: 1.5;
+        }
+
+        /* ACTION */
+
+        .questions-action {
+            margin-top: 13px;
+        }
+
+        .copy-button {
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 15px;
+            background: #102333;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .copy-button:hover {
+            background: #17354d;
+        }
+
+        .secondary-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .secondary-actions a {
+            flex: 1;
+        }
+
+        /* EMPTY */
+
+        .questions-empty {
+            padding: 25px 18px;
+            background: #fffdf8;
+            border: 1px solid #ddd2c2;
+            border-radius: 10px;
+            text-align: center;
+            color: #718087;
+            font-size: 10px;
+        }
+
+        @media (max-width: 620px) {
+
+            .smart-question {
+                align-items: flex-start;
+            }
+
+            .question-label {
+                display: none;
+            }
+
+            .question-priority-summary {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+
+            <div class="sidebar-logo-icon">
+                🕵️
+            </div>
+
+            <div>
+
+                <h2>
+                    Missing Information<br>
+                    Detective
+                </h2>
+
+                <span>
+                    AI DOCUMENT INVESTIGATION
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a href="/">
+                <span class="icon">⌂</span>
+                <span>Home</span>
+            </a>
+
+            <a href="/upload">
+                <span class="icon">▣</span>
+                <span>Analyze Document</span>
+            </a>
+
+            <a href="/history">
+                <span class="icon">◷</span>
+                <span>History</span>
+            </a>
+
+            <a href="/admin">
+                <span class="icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-note">
+
+            Better questions.<br>
+            Safer choices.
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main-area">
+
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div class="topbar-icon">
+                🔔
+            </div>
+
+            <div class="profile">
+
+                <div class="profile-avatar">
+                    👤
+                </div>
+
+                <span class="profile-name">
+                    Samruddhi
+                </span>
+
+                <span class="profile-arrow">
+                    ▼
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE -->
+
+        <div class="page">
+
+            <div class="questions-page">
+
+
+                <h1 class="questions-title">
+                    Smart Questions
+                </h1>
+
+
+                <p class="questions-subtitle">
+                    AI-generated questions based on the missing and unclear information found in your document.
+                </p>
+
+
+                {% if analysis %}
+
+                    {% set priority =
+                        analysis.get("priority", {}) %}
+
+                    {% set critical =
+                        priority.get("critical", []) %}
+
+                    {% set important =
+                        priority.get("important", []) %}
+
+                    {% set optional =
+                        priority.get("optional", []) %}
+
+
+                    <!-- PRIORITY SUMMARY -->
+
+                    <div class="question-priority-summary">
+
+                        <div class="question-priority-box priority-critical">
+
+                            <strong>
+                                {{ critical|length }}
+                            </strong>
+
+                            <span>
+                                Critical findings
+                            </span>
+
+                        </div>
+
+
+                        <div class="question-priority-box priority-important">
+
+                            <strong>
+                                {{ important|length }}
+                            </strong>
+
+                            <span>
+                                Important findings
+                            </span>
+
+                        </div>
+
+
+                        <div class="question-priority-box priority-optional">
+
+                            <strong>
+                                {{ optional|length }}
+                            </strong>
+
+                            <span>
+                                Optional findings
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if analysis.questions %}
+
+                    <div class="questions-list">
+
+                        {% for question in analysis.questions %}
+
+                            {% set question_lower =
+                                question|lower %}
+
+                            {% set ns = namespace(
+                                critical_score=0,
+                                important_score=0,
+                                optional_score=0
+                            ) %}
+
+
+                            <!--
+                                Compare important words from the
+                                question with each priority finding.
+                            -->
+
+                            {% for item in critical %}
+
+                                {% set item_lower =
+                                    item|lower %}
+
+                                {% for word in item_lower.split() %}
+
+                                    {% if word|length > 3
+                                          and word in question_lower %}
+
+                                        {% set ns.critical_score =
+                                            ns.critical_score + 1 %}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            {% endfor %}
+
+
+                            {% for item in important %}
+
+                                {% set item_lower =
+                                    item|lower %}
+
+                                {% for word in item_lower.split() %}
+
+                                    {% if word|length > 3
+                                          and word in question_lower %}
+
+                                        {% set ns.important_score =
+                                            ns.important_score + 1 %}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            {% endfor %}
+
+
+                            {% for item in optional %}
+
+                                {% set item_lower =
+                                    item|lower %}
+
+                                {% for word in item_lower.split() %}
+
+                                    {% if word|length > 3
+                                          and word in question_lower %}
+
+                                        {% set ns.optional_score =
+                                            ns.optional_score + 1 %}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            {% endfor %}
+
+
+                            <!-- DEFAULT -->
+
+                            {% set level = "Optional" %}
+
+
+                            <!-- CRITICAL HAS HIGHEST PRIORITY -->
+
+                            {% if ns.critical_score > 0
+                                  and ns.critical_score >= ns.important_score
+                                  and ns.critical_score >= ns.optional_score %}
+
+                                {% set level = "Critical" %}
+
+
+                            {% elif ns.important_score > 0
+                                  and ns.important_score >= ns.optional_score %}
+
+                                {% set level = "Important" %}
+
+                            {% endif %}
+
+
+                            <div class="smart-question">
+
+                                <div class="question-number">
+                                    {{ loop.index }}
+                                </div>
+
+
+                                <div class="question-content">
+
+                                    <div class="question-text">
+                                        {{ question }}
+                                    </div>
+
+                                </div>
+
+
+                                {% if level == "Critical" %}
+
+                                    <span class="question-label label-critical">
+                                        Critical
+                                    </span>
+
+                                {% elif level == "Important" %}
+
+                                    <span class="question-label label-important">
+                                        Important
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="question-label label-optional">
+                                        Optional
+                                    </span>
+
+                                {% endif %}
+
+
+                                <div class="question-arrow">
+                                    ›
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    {% else %}
+
+                    <div class="questions-empty">
+
+                        No smart questions were generated for this investigation.
+
+                    </div>
+
+                    {% endif %}
+
+
+                {% else %}
+
+                <div class="questions-empty">
+
+                    No analysis available.
+
+                    <br><br>
+
+                    Start a new investigation first.
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- TIP -->
+
+                <div class="question-tip">
+
+                    <div class="tip-icon">
+                        💡
+                    </div>
+
+                    <div class="tip-content">
+
+                        <strong>
+                            Detective Tip
+                        </strong>
+
+                        <p>
+                            Focus first on questions related to critical and important information gaps before making a decision.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTION -->
+
+                <div class="questions-action">
+
+                    <button
+                        type="button"
+                        class="copy-button"
+                        onclick="copyQuestions()">
+
+                        Copy All Questions
+
+                    </button>
+
+                </div>
+
+
+                <div class="secondary-actions">
+
+                    <a href="/results"
+                       class="btn btn-secondary">
+
+                        ← Back to Findings
+
+                    </a>
+
+                    <a href="/score"
+                       class="btn btn-primary">
+
+                        View Completeness Score →
+
+                    </a>
+
+                </div>
+
+
+                <div class="footer">
+
+                    AI Missing Information Detective · Smart Questions
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+function copyQuestions() {
+
+    const questions =
+
+        Array.from(
+            document.querySelectorAll(".question-text")
+        )
+
+        .map(function (item) {
+
+            return item.innerText;
+
+        })
+
+        .join("\n");
+
+
+    if (!questions) {
+
+        return;
+
+    }
+
+
+    navigator.clipboard.writeText(questions)
+
+        .then(function () {
+
+            const button =
+                document.querySelector(".copy-button");
+
+            const original =
+                button.textContent;
+
+            button.textContent =
+                "✓ Questions Copied";
+
+
+            setTimeout(function () {
+
+                button.textContent =
+                    original;
+
+            }, 1500);
+
+        })
+
+        .catch(function () {
+
+            alert(
+                "Questions could not be copied."
+            );
+
+        });
+
+}
+
+</script>
+
+
+</body>
+
+</html>
