@@ -3,135 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>AI Missing Information Detective</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* ==============================
-           DASHBOARD ONLY
-           ============================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        .dashboard-hero {
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
+        body {
+            font-family: "DM Sans", sans-serif;
+            background: #f7f1e8;
+            color: #1d292f;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 225px;
+            background: #17252b;
+            color: #f8f1e7;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            padding: 25px 18px;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
             align-items: center;
-            gap: 28px;
-            min-height: 315px;
+            gap: 10px;
+            margin-bottom: 35px;
         }
 
-        .dashboard-hero-text {
-            max-width: 530px;
-        }
-
-        .dashboard-hero-text .page-title {
-            font-size: 38px;
-            margin-top: 15px;
-        }
-
-        .dashboard-hero-text .page-subtitle {
-            max-width: 500px;
-            margin-bottom: 20px;
-        }
-
-        .dashboard-hero-image {
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            background: #d95543;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 20px;
         }
 
-        .dashboard-hero-image img {
-            width: 100%;
-            max-width: 440px;
-            height: auto;
+        .brand-text h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 16px;
+            line-height: 1.1;
+        }
+
+        .brand-text span {
             display: block;
-            border-radius: 14px;
+            font-size: 9px;
+            color: #b7c0c1;
+            letter-spacing: 1.2px;
+            margin-top: 3px;
         }
 
-        .dashboard-section-head {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 13px;
+        .nav-label {
+            font-size: 9px;
+            color: #819092;
+            letter-spacing: 1.5px;
+            margin: 0 10px 10px;
         }
 
-        .dashboard-section-head .section-title {
-            margin-top: 13px;
-            margin-bottom: 0;
-        }
-
-        .quick-grid.dashboard-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-        }
-
-        .dashboard-quick-card {
-            min-height: 135px;
+        .nav-menu {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            gap: 5px;
         }
 
-        .dashboard-quick-card .quick-icon {
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            color: #c8d0d0;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #26373d;
+            color: #ffffff;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        /* MAIN */
+        .main-content {
+            margin-left: 225px;
+            width: calc(100% - 225px);
+            min-height: 100vh;
+        }
+
+        /* TOPBAR */
+        .topbar {
+            height: 72px;
+            background: #fbf7f0;
+            border-bottom: 1px solid #e7ded2;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 32px;
+        }
+
+        .auth-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 76px;
+            padding: 9px 15px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .auth-login {
+            background: #ffffff;
+            border: 1px solid #d8cec1;
+            color: #26353b;
+        }
+
+        .auth-login:hover {
+            background: #eee5d9;
+        }
+
+        .auth-register {
+            background: #d95543;
+            color: #ffffff;
+        }
+
+        .auth-register:hover {
+            background: #bd4737;
+        }
+
+        .auth-logout {
+            background: #eee3d5;
+            color: #26353b;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .profile-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #ead8c8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .profile-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #26353b;
+        }
+
+        /* HERO */
+        .content {
+            padding: 38px 42px 50px;
+        }
+
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 38px;
+        }
+
+        .hero-left {
+            max-width: 650px;
+        }
+
+        .eyebrow {
+            color: #a34a3d;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
             margin-bottom: 9px;
         }
 
-        .dashboard-quick-card p {
-            margin-top: 4px;
-            margin-bottom: 8px;
+        .hero h1 {
+            font-family: "Playfair Display", serif;
+            font-size: 42px;
+            line-height: 1.08;
+            color: #17252b;
+            margin-bottom: 15px;
         }
 
-        .recent-heading {
+        .hero p {
+            color: #687376;
+            font-size: 13px;
+            line-height: 1.7;
+            max-width: 590px;
+        }
+
+        .hero-badge {
+            min-width: 170px;
+            background: #efe1d1;
+            border: 1px solid #e2d1bf;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .hero-badge-icon {
+            font-size: 28px;
+            margin-bottom: 7px;
+        }
+
+        .hero-badge strong {
+            display: block;
+            font-size: 11px;
+            color: #26353b;
+        }
+
+        .hero-badge span {
+            display: block;
+            font-size: 9px;
+            color: #7d8585;
+            margin-top: 4px;
+        }
+
+        /* CARDS */
+        .section-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 15px;
-            margin-bottom: 13px;
+            margin-bottom: 14px;
         }
 
-        .recent-heading .section-title {
-            margin: 0;
+        .section-title h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 21px;
+            color: #17252b;
         }
 
-        .recent-view {
+        .section-title span {
             font-size: 10px;
+            color: #8a918f;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 17px;
+            margin-bottom: 38px;
+        }
+
+        .feature-card {
+            background: #fffaf3;
+            border: 1px solid #e6ddd1;
+            border-radius: 11px;
+            padding: 22px;
+            min-height: 175px;
+            transition: 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(40, 34, 28, 0.07);
+        }
+
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 9px;
+            background: #f0dfd0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 14px;
+            color: #233238;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 11px;
+            line-height: 1.6;
+            color: #788082;
+        }
+
+        /* CTA */
+        .case-card {
+            background: #1c2c32;
+            border-radius: 13px;
+            padding: 28px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            color: white;
+        }
+
+        .case-card h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 24px;
+            margin-bottom: 7px;
+        }
+
+        .case-card p {
+            color: #b9c2c2;
+            font-size: 11px;
+            line-height: 1.6;
+            max-width: 560px;
+        }
+
+        .primary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background: #d95543;
+            color: white;
+            border-radius: 7px;
+            font-size: 11px;
             font-weight: 700;
-            color: #b84135;
+            white-space: nowrap;
+            transition: 0.2s;
         }
 
-        .dashboard-note {
-            margin-top: 24px;
+        .primary-btn:hover {
+            background: #bd4737;
         }
 
-        @media (max-width: 850px) {
-            .dashboard-hero {
+        /* FOOTER */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #929997;
+            font-size: 9px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                width: calc(100% - 200px);
+            }
+
+            .feature-grid {
                 grid-template-columns: 1fr;
             }
 
-            .dashboard-hero-image {
-                order: -1;
-            }
-
-            .dashboard-hero-image img {
-                max-width: 360px;
-            }
-
-            .quick-grid.dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
-        @media (max-width: 520px) {
-            .dashboard-hero-text .page-title {
-                font-size: 29px;
+        @media (max-width: 700px) {
+            .sidebar {
+                width: 70px;
+                padding: 20px 10px;
             }
 
-            .quick-grid.dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .brand-text,
+            .nav-label,
+            .nav-link span {
+                display: none;
+            }
+
+            .brand {
+                justify-content: center;
+            }
+
+            .nav-link {
+                justify-content: center;
+            }
+
+            .main-content {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+
+            .content {
+                padding: 25px 18px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .case-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar {
+                padding: 0 18px;
             }
         }
     </style>
@@ -139,453 +445,295 @@
 
 <body>
 
-<div class="app-layout">
+<div class="app-shell">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
 
-        <div class="sidebar-logo">
+        <div class="brand">
+            <div class="brand-icon">🔎</div>
 
-            <div class="sidebar-logo-icon">
-                🕵️
+            <div class="brand-text">
+                <h2>AI Detective</h2>
+                <span>CASE FILE SYSTEM</span>
             </div>
-
-            <div>
-                <h2>
-                    Missing Information<br>
-                    Detective
-                </h2>
-
-                <span>
-                    AI DOCUMENT INVESTIGATION
-                </span>
-            </div>
-
         </div>
 
+        <div class="nav-label">NAVIGATION</div>
 
-        <nav class="sidebar-nav">
+        <nav class="nav-menu">
 
-            <a href="/" class="active">
-                <span class="icon">⌂</span>
-                <span>Home</span>
+            <a href="{{ url_for('home') }}" class="nav-link active">
+                <div class="nav-icon">⌂</div>
+                <span>Dashboard</span>
             </a>
 
-            <a href="/upload">
-                <span class="icon">▣</span>
-                <span>Analyze Document</span>
+            <a href="{{ url_for('upload') }}" class="nav-link">
+                <div class="nav-icon">＋</div>
+                <span>New Investigation</span>
             </a>
 
-            <a href="/history">
-                <span class="icon">◷</span>
-                <span>History</span>
+            <a href="{{ url_for('history') }}" class="nav-link">
+                <div class="nav-icon">▤</div>
+                <span>Case History</span>
             </a>
 
-            <a href="/admin">
-                <span class="icon">⚙</span>
-                <span>Settings</span>
+            <a href="{{ url_for('admin') }}" class="nav-link">
+                <div class="nav-icon">⚙</div>
+                <span>Admin</span>
             </a>
 
         </nav>
-
-
-        <div class="sidebar-note">
-            Every document leaves clues.
-            <br>
-            Find what's missing.
-        </div>
 
     </aside>
 
 
     <!-- MAIN -->
-    <main class="main-area">
-
+    <main class="main-content">
 
         <!-- TOPBAR -->
-        <header class="topbar">
+        <div class="topbar">
 
-            <div class="topbar-icon">
-                🔔
-            </div>
+            {% if session.get("user_id") %}
 
-            <div class="profile">
+                <div class="profile">
 
-                <div class="profile-avatar">
-                    👤
+                    <div class="profile-avatar">👤</div>
+
+                    <span class="profile-name">
+                        {{ session.get("user_name") }}
+                    </span>
+
+                    <div class="auth-actions">
+
+                        <a href="{{ url_for('logout') }}"
+                           class="auth-btn auth-logout">
+                            Logout
+                        </a>
+
+                    </div>
+
                 </div>
 
-                <span class="profile-name">
-                    Samruddhi
-                </span>
+            {% else %}
 
-                <span class="profile-arrow">
-                    ▼
-                </span>
+                <div class="auth-actions">
 
-            </div>
+                    <a href="{{ url_for('login') }}"
+                       class="auth-btn auth-login">
+                        Login
+                    </a>
 
-        </header>
+                    <a href="{{ url_for('register') }}"
+                       class="auth-btn auth-register">
+                        Register
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
 
 
-        <!-- PAGE -->
-        <div class="page">
-
+        <!-- CONTENT -->
+        <div class="content">
 
             <!-- HERO -->
-            <section class="hero-card dashboard-hero">
+            <section class="hero">
 
-                <div class="dashboard-hero-text">
+                <div class="hero-left">
 
-                    <div class="sticky-note red">
-                        CASE DETECTIVE
+                    <div class="eyebrow">
+                        INTELLIGENCE • EVIDENCE • ANALYSIS
                     </div>
 
-                    <h1 class="page-title">
-                        Find What Your<br>
-                        Document Doesn't Say.
+                    <h1>
+                        Find what's missing<br>
+                        before it becomes a problem.
                     </h1>
 
-                    <p class="page-subtitle">
-                        Upload a document and let the AI detective
-                        uncover missing information, unclear details
-                        and questions that still need answers.
+                    <p>
+                        AI Missing Information Detective examines your documents,
+                        finds missing details, unclear statements, contradictions,
+                        and evidence gaps — then generates the questions you should ask.
                     </p>
 
-                    <a href="/upload"
-                       class="btn btn-primary">
-                        🔎 Analyze a Document
-                    </a>
-
                 </div>
 
 
-                <div class="dashboard-hero-image">
+                <div class="hero-badge">
 
-                    <img
-                        src="{{ url_for(
-                            'static',
-                            filename='images/02_dashboard_hero.png'
-                        ) }}"
-                        alt="AI Missing Information Detective"
-                    >
-
-                </div>
-
-            </section>
-
-
-            <!-- QUICK START -->
-            <section class="section">
-
-                <div class="dashboard-section-head">
-
-                    <div>
-
-                        <div class="sticky-note">
-                            QUICK START
-                        </div>
-
-                        <h2 class="section-title">
-                            Investigation Tools
-                        </h2>
-
+                    <div class="hero-badge-icon">
+                        🕵️
                     </div>
 
-                </div>
+                    <strong>
+                        AI CASE ANALYSIS
+                    </strong>
 
-
-                <div class="quick-grid dashboard-grid">
-
-
-                    <!-- JOB OFFER -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                💼
-                            </div>
-
-                            <h3>
-                                Job Offer
-                            </h3>
-
-                            <p>
-                                Check employment details
-                                and missing terms.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
-
-
-                    <!-- COLLEGE -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                🎓
-                            </div>
-
-                            <h3>
-                                College Notice
-                            </h3>
-
-                            <p>
-                                Find missing dates,
-                                rules and instructions.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
-
-
-                    <!-- LEGAL -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                ⚖️
-                            </div>
-
-                            <h3>
-                                Legal
-                            </h3>
-
-                            <p>
-                                Detect unclear clauses
-                                and obligations.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
-
-
-                    <!-- FINANCE -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                💰
-                            </div>
-
-                            <h3>
-                                Finance
-                            </h3>
-
-                            <p>
-                                Review costs, amounts
-                                and missing terms.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
-
-
-                    <!-- RENTAL -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                🏠
-                            </div>
-
-                            <h3>
-                                Rental Agreement
-                            </h3>
-
-                            <p>
-                                Check rent, deposit
-                                and agreement details.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
-
-
-                    <!-- GENERAL -->
-                    <a href="/upload"
-                       class="quick-card dashboard-quick-card">
-
-                        <div>
-
-                            <div class="quick-icon">
-                                📄
-                            </div>
-
-                            <h3>
-                                General
-                            </h3>
-
-                            <p>
-                                Investigate any document
-                                for missing information.
-                            </p>
-
-                        </div>
-
-                        <span class="quick-link">
-                            Analyze →
-                        </span>
-
-                    </a>
+                    <span>
+                        Evidence-driven detection
+                    </span>
 
                 </div>
 
             </section>
 
 
-            <!-- RECENT ANALYSES -->
-            <section class="section">
+            <!-- FEATURES -->
+            <div class="section-title">
 
-                <div class="recent-heading">
+                <h2>
+                    What the Detective Finds
+                </h2>
 
-                    <h2 class="section-title">
-                        Recent Analyses
+                <span>
+                    AI-powered investigation
+                </span>
+
+            </div>
+
+
+            <section class="feature-grid">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🔍
+                    </div>
+
+                    <h3>
+                        Missing Information
+                    </h3>
+
+                    <p>
+                        Detect important details that should be present
+                        but are missing from the document.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        ⚠️
+                    </div>
+
+                    <h3>
+                        Unclear Information
+                    </h3>
+
+                    <p>
+                        Identify ambiguous statements, vague details,
+                        and information that needs clarification.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        ⚖️
+                    </div>
+
+                    <h3>
+                        Contradictions
+                    </h3>
+
+                    <p>
+                        Find conflicting information and statements
+                        that do not agree with each other.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        📎
+                    </div>
+
+                    <h3>
+                        Evidence Trail
+                    </h3>
+
+                    <p>
+                        Track important facts and evidence found inside
+                        the document.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        💬
+                    </div>
+
+                    <h3>
+                        Smart Questions
+                    </h3>
+
+                    <p>
+                        Generate useful questions you should ask
+                        based on the detected information gaps.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        📊
+                    </div>
+
+                    <h3>
+                        Completeness Score
+                    </h3>
+
+                    <p>
+                        Get an AI-generated score showing how complete
+                        and informative your document is.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- CTA -->
+            <section class="case-card">
+
+                <div>
+
+                    <h2>
+                        Start a New Investigation
                     </h2>
 
-                    <a href="/history"
-                       class="recent-view">
-                        View all →
-                    </a>
+                    <p>
+                        Upload a document, image, paste text, or provide a URL.
+                        The detective will analyze it and create a complete case report.
+                    </p>
 
                 </div>
 
 
-                <div class="paper-panel">
-
-                    <div class="recent-list">
-
-
-                        <div class="recent-item">
-
-                            <div class="recent-icon">
-                                💼
-                            </div>
-
-                            <div class="recent-info">
-
-                                <div class="recent-name">
-                                    Job Offer Letter
-                                </div>
-
-                                <div class="recent-meta">
-                                    82% complete
-                                </div>
-
-                            </div>
-
-                            <div class="recent-time">
-                                2 hours ago
-                            </div>
-
-                        </div>
-
-
-                        <div class="recent-item">
-
-                            <div class="recent-icon">
-                                🎓
-                            </div>
-
-                            <div class="recent-info">
-
-                                <div class="recent-name">
-                                    College Notice.pdf
-                                </div>
-
-                                <div class="recent-meta">
-                                    64% complete
-                                </div>
-
-                            </div>
-
-                            <div class="recent-time">
-                                5 hours ago
-                            </div>
-
-                        </div>
-
-
-                        <div class="recent-item">
-
-                            <div class="recent-icon">
-                                🏠
-                            </div>
-
-                            <div class="recent-info">
-
-                                <div class="recent-name">
-                                    Rental Agreement
-                                </div>
-
-                                <div class="recent-meta">
-                                    76% complete
-                                </div>
-
-                            </div>
-
-                            <div class="recent-time">
-                                1 day ago
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- NOTE -->
-            <section class="section dashboard-note">
-
-                <div class="sticky-note">
-                    Every document leaves clues.
-                    Find what's missing.
-                </div>
+                <a href="{{ url_for('upload') }}"
+                   class="primary-btn">
+                    Start Investigation →
+                </a>
 
             </section>
 
 
             <div class="footer">
-                AI Missing Information Detective · Investigation Dashboard
+                AI Missing Information Detective • Intelligent Document Investigation
             </div>
 
         </div>
@@ -593,9 +741,6 @@
     </main>
 
 </div>
-
-
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>
 </html>

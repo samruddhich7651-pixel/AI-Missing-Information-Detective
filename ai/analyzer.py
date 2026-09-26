@@ -1,352 +1,660 @@
 import os
 import json
+import re
 
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+
+# =========================================================
+# LOAD ENVIRONMENT
+# =========================================================
+
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+
+if not GEMINI_API_KEY:
+    raise ValueError(
+        "GEMINI_API_KEY is missing. Please add it to .env"
+    )
 
 
-def analyze_document(text, image_bytes=None, image_mime=None):
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
-    prompt = """
-You are an expert AI Missing Information Detective.
 
-Your job is to deeply analyze the provided document or image and identify
-what information is present, missing, unclear, contradictory, and what
-questions should be asked before making an informed decision.
+# =========================================================
+# JSON CLEANING
+# =========================================================
 
-IMPORTANT ANALYSIS PROCESS:
+def clean_json_response(text):
 
-1. FIRST understand the document and identify its type and purpose.
-2. Extract the important facts actually present.
-3. Identify information that is genuinely missing and would reasonably
-   be expected for this type of document.
-4. Identify vague, incomplete, ambiguous or confusing statements.
-5. Identify contradictions only when two pieces of information actually
-   conflict with each other.
-6. Identify important evidence/facts that support the analysis.
-7. Generate practical questions directly related to the detected gaps.
-8. Assign realistic priority levels.
-9. Calculate a meaningful completeness score from 0 to 100.
+    if not text:
+        return ""
 
-IMAGE RULES:
+    text = text.strip()
 
-- If an image is provided, carefully read all visible text.
-- Extract information from the image before deciding what is missing.
-- Do NOT say information is missing if it is clearly visible in the image.
-- Consider headings, tables, dates, numbers, names and other visible details.
-- Do not assume an image contains no useful information.
+    # Remove markdown code fences
+    text = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        text,
+        flags=re.IGNORECASE
+    )
 
-IMPORTANT:
+    text = re.sub(
+        r"\s*```$",
+        "",
+        text
+    )
 
-- Do not invent facts.
-- Do not assume information that is not present.
-- Do not create contradictions without actual conflicting information.
-- Do not mark normal optional details as missing unless they are relevant
-  to the purpose of the document.
-- Analyze the document according to its actual context and purpose.
+    # Remove control characters
+    text = "".join(
+        char
+        for char in text
+        if ord(char) >= 32
+        or char in "\n\r\t"
+    )
 
-DOCUMENT-TYPE AWARE ANALYSIS:
+    # Find first JSON object
+    start = text.find("{")
 
-Adapt the analysis to the document type.
+    if start != -1:
+        end = text.rfind("}")
 
-For example:
+        if end != -1:
+            text = text[start:end + 1]
 
-- Job offer:
-  salary, role, location, working hours, joining date, notice period,
-  probation, bond, benefits and other relevant employment terms.
+    return text.strip()
 
-- Contract/agreement:
-  parties, obligations, payment, duration, termination, penalties,
-  responsibilities and important conditions.
 
-- Resume:
-  contact information, education, skills, experience, dates,
-  achievements and other important professional information.
+def repair_json_text(text):
 
-- Invoice:
-  seller, buyer, invoice number, date, items, quantities, prices,
-  taxes, totals and payment information.
+    if not text:
+        return text
 
-- Academic document:
-  institution, subject/course, dates, marks/grades, requirements
-  and other relevant academic details.
+    # Remove trailing commas
+    text = re.sub(
+        r",\s*([}\]])",
+        r"\1",
+        text
+    )
 
-- General document:
-  identify its purpose first and then determine what information
-  is reasonably necessary for understanding or decision-making.
+    # Remove unusual characters that sometimes appear
+    # immediately before JSON closing brackets.
+    text = re.sub(
+        r"[\u0000-\u001F\u007F-\u009F]+(?=\s*[\]\}])",
+        "",
+        text
+    )
 
-MISSING INFORMATION:
+    return text.strip()
 
-Only include information that is genuinely absent and important
-for understanding, verification or decision-making.
 
-UNCLEAR INFORMATION:
+# =========================================================
+# DEFAULT RESULT
+# =========================================================
 
-Include statements that are vague, ambiguous, incomplete or could
-reasonably have multiple interpretations.
+def default_result():
 
-CONTRADICTIONS:
-
-Only report a contradiction when two pieces of information in the
-document directly conflict.
-
-EVIDENCE:
-
-Include important facts, figures, dates, names, statements or clues
-that are actually present in the document and support the analysis.
-
-QUESTIONS:
-
-Every question should be practical and connected to a detected
-missing or unclear item.
-
-PRIORITY:
-
-Classify important missing and unclear items into:
-
-critical:
-Essential information that could significantly affect money,
-legal obligations, safety, deadlines, major decisions or outcomes.
-
-important:
-Useful information that should normally be clarified before
-making a proper decision, but is not immediately critical.
-
-optional:
-Helpful additional information that improves understanding but
-is not necessary for the main decision.
-
-Priority rules:
-
-- Use only detected missing or unclear items.
-- Do not invent priority items.
-- Put each item in only ONE priority category.
-- Do not mark everything as critical.
-- Contradictions can be treated as critical or important when
-  they materially affect the document's meaning.
-- Keep priority classification consistent with the actual document.
-
-COMPLETENESS SCORE:
-
-Calculate an integer from 0 to 100.
-
-The score represents how complete and decision-ready the document is.
-
-Consider:
-
-- Important information that is present.
-- Important information that is missing.
-- Unclear information.
-- Contradictions.
-- The purpose and type of the document.
-
-Guidelines:
-
-90-100 = very complete, little important information missing.
-75-89 = mostly complete, some useful information missing.
-50-74 = several important gaps or unclear details.
-25-49 = major information is missing or unclear.
-0-24 = very incomplete or unreliable for decision-making.
-
-Do not automatically give a high score just because the document
-contains a lot of text.
-
-Return ONLY valid JSON.
-
-Use exactly this structure:
-
-{
-    "missing_information": [],
-    "unclear_information": [],
-    "contradictions": [],
-    "evidence": [],
-    "questions": [],
-    "completeness_score": 0,
-    "priority": {
-        "critical": [],
-        "important": [],
-        "optional": []
+    return {
+        "missing_information": [],
+        "unclear_information": [],
+        "contradictions": [],
+        "evidence": [],
+        "questions": [],
+        "completeness_score": 0,
+        "priority": {
+            "critical": [],
+            "important": [],
+            "optional": []
+        }
     }
-}
-"""
 
-    if text:
-        prompt += "\n\nDOCUMENT TEXT:\n" + text
+
+# =========================================================
+# VALIDATE AI RESULT
+# =========================================================
+
+def validate_result(result):
+
+    if not isinstance(result, dict):
+        return default_result()
+
+    required_list_fields = [
+        "missing_information",
+        "unclear_information",
+        "contradictions",
+        "evidence",
+        "questions"
+    ]
+
+    for field in required_list_fields:
+
+        if field not in result:
+            result[field] = []
+
+        if not isinstance(result[field], list):
+            result[field] = []
+
+
+    # Priority
+    if not isinstance(
+        result.get("priority"),
+        dict
+    ):
+        result["priority"] = {
+            "critical": [],
+            "important": [],
+            "optional": []
+        }
+
+
+    for priority_name in [
+        "critical",
+        "important",
+        "optional"
+    ]:
+
+        if priority_name not in result["priority"]:
+            result["priority"][priority_name] = []
+
+        if not isinstance(
+            result["priority"][priority_name],
+            list
+        ):
+            result["priority"][priority_name] = []
+
+
+    # Score
+    score = result.get(
+        "completeness_score",
+        0
+    )
 
     try:
 
-        contents = []
+        if isinstance(score, str):
 
-        if image_bytes and image_mime:
+            match = re.search(
+                r"\d+(?:\.\d+)?",
+                score
+            )
+
+            if match:
+                score = float(match.group())
+            else:
+                score = 0
+
+        score = float(score)
+
+    except Exception:
+
+        score = 0
+
+
+    score = max(
+        0,
+        min(
+            100,
+            score
+        )
+    )
+
+
+    if score.is_integer():
+        score = int(score)
+
+
+    result["completeness_score"] = score
+
+
+    return result
+
+
+# =========================================================
+# ANALYZE DOCUMENT
+# =========================================================
+
+def analyze_document(
+    document_text,
+    image_bytes=None,
+    image_mime=None
+):
+
+    print(
+        "========================================"
+    )
+
+    print(
+        "STARTING DOCUMENT ANALYSIS"
+    )
+
+    print(
+        "TEXT LENGTH:",
+        len(document_text or "")
+    )
+
+    print(
+        "IMAGE PROVIDED:",
+        bool(image_bytes)
+    )
+
+    print(
+        "IMAGE MIME:",
+        image_mime
+    )
+
+    print(
+        "========================================"
+    )
+
+
+    # =====================================================
+    # CLEAN INPUT
+    # =====================================================
+
+    document_text = (
+        document_text or ""
+    ).strip()
+
+
+    # If absolutely nothing was provided
+    if not document_text and not image_bytes:
+
+        print(
+            "NO DOCUMENT CONTENT PROVIDED"
+        )
+
+        return default_result()
+
+
+    # =====================================================
+    # AI PROMPT
+    # =====================================================
+
+    prompt = """
+You are an expert document investigation AI.
+
+Your job is to analyze the supplied document and identify:
+
+1. Missing information
+2. Unclear or ambiguous information
+3. Contradictions
+4. Important evidence already present
+5. Useful questions the user should ask
+6. Overall completeness score
+
+IMPORTANT:
+
+- Analyze ONLY information relevant to the document's actual purpose.
+- First understand what type of document it is.
+- Do NOT assume every standard field must exist.
+- Do NOT mark optional information as missing.
+- Do NOT invent information.
+- Do NOT create weak or generic findings.
+- Prefer fewer accurate findings over many false positives.
+
+For resumes:
+
+- Do NOT automatically mark LinkedIn, GitHub, GPA/CGPA,
+  certifications, internships, achievements, extracurriculars,
+  leadership, hobbies or references as missing.
+- Only flag them if they are clearly required for the stated
+  purpose or explicitly expected by the document context.
+- Future dates alone are NOT contradictions.
+- Short project descriptions are NOT automatically unclear.
+
+For certificates and official documents:
+
+- Focus on information that is genuinely necessary for
+  identification, verification, validity or intended use.
+- Do not invent requirements that are not relevant to the document.
+
+For contracts, offers and agreements:
+
+- Focus on important terms, obligations, dates, payment,
+  duration, location, notice periods, conditions and rights
+  when those details are relevant to the document purpose.
+
+For general documents:
+
+- Identify meaningful information gaps that could affect
+  understanding, verification or decision making.
+
+COMPLETENESS SCORE:
+
+The score must be an integer from 0 to 100.
+
+100 means the document contains essentially all important
+information needed for its purpose.
+
+0 means the document contains almost no useful information
+for its purpose.
+
+The score must be based on the actual document content.
+
+Do NOT return 0 simply because some optional information
+is missing.
+
+QUALITY CHECK:
+
+Before returning the final JSON:
+
+- Remove duplicate findings.
+- Remove weak findings.
+- Remove optional information that is not genuinely needed.
+- Do not treat future dates as contradictions unless two
+  pieces of information actually conflict.
+- Make sure every missing or unclear item has a useful reason.
+- Make sure the score matches the actual findings.
+
+RETURN ONLY VALID JSON.
+
+The JSON must have exactly this structure:
+
+{
+  "missing_information": [
+    {
+      "item": "string",
+      "priority": "critical|important|optional",
+      "details": "string"
+    }
+  ],
+  "unclear_information": [
+    {
+      "item": "string",
+      "priority": "critical|important|optional",
+      "details": "string"
+    }
+  ],
+  "contradictions": [
+    {
+      "item": "string",
+      "priority": "critical|important|optional",
+      "details": "string"
+    }
+  ],
+  "evidence": [
+    "string"
+  ],
+  "questions": [
+    "string"
+  ],
+  "completeness_score": 0,
+  "priority": {
+    "critical": [],
+    "important": [],
+    "optional": []
+  }
+}
+
+Do not add markdown.
+Do not add explanations outside JSON.
+"""
+
+
+    # =====================================================
+    # ADD TEXT TO PROMPT
+    # =====================================================
+
+    if document_text:
+
+        prompt += """
+
+DOCUMENT CONTENT:
+
+---------------- DOCUMENT START ----------------
+
+""" + document_text + """
+
+----------------- DOCUMENT END -----------------
+
+Analyze the document content above.
+"""
+
+
+    # =====================================================
+    # PREPARE GEMINI CONTENT
+    # =====================================================
+
+    contents = []
+
+
+    # Text prompt
+    contents.append(
+        prompt
+    )
+
+
+    # =====================================================
+    # IMAGE CONTENT
+    # =====================================================
+
+    if image_bytes:
+
+        print(
+            "ADDING IMAGE TO GEMINI REQUEST"
+        )
+
+        try:
 
             image_part = types.Part.from_bytes(
                 data=image_bytes,
-                mime_type=image_mime
+                mime_type=(
+                    image_mime
+                    or "image/png"
+                )
             )
 
-            contents.append(image_part)
+            contents.append(
+                image_part
+            )
 
-        contents.append(prompt)
+        except Exception as e:
+
+            print(
+                "IMAGE PART ERROR:",
+                repr(e)
+            )
+
+            return default_result()
+
+
+    # =====================================================
+    # GEMINI CALL
+    # =====================================================
+
+    print(
+        "CALLING GEMINI..."
+    )
+
+    try:
 
         response = client.models.generate_content(
+
             model="gemini-2.5-flash",
+
             contents=contents,
+
             config=types.GenerateContentConfig(
-                temperature=0.2,
+                temperature=0.1,
                 response_mime_type="application/json"
             )
         )
 
-        if not response.text:
-            raise ValueError(
-                "Gemini returned an empty response."
-            )
-
-        result_text = response.text.strip()
-
-        if result_text.startswith("```"):
-
-            result_text = result_text.replace(
-                "```json",
-                ""
-            )
-
-            result_text = result_text.replace(
-                "```",
-                ""
-            )
-
-            result_text = result_text.strip()
-
-        result = json.loads(result_text)
-
-        # ---------------------------------------------
-        # REQUIRED FIELDS
-        # ---------------------------------------------
-
-        required_fields = [
-            "missing_information",
-            "unclear_information",
-            "contradictions",
-            "evidence",
-            "questions",
-            "completeness_score",
-            "priority"
-        ]
-
-        for field in required_fields:
-
-            if field not in result:
-
-                if field == "completeness_score":
-
-                    result[field] = 0
-
-                elif field == "priority":
-
-                    result[field] = {
-                        "critical": [],
-                        "important": [],
-                        "optional": []
-                    }
-
-                else:
-
-                    result[field] = []
-
-        # ---------------------------------------------
-        # ENSURE LIST FIELDS ARE LISTS
-        # ---------------------------------------------
-
-        list_fields = [
-            "missing_information",
-            "unclear_information",
-            "contradictions",
-            "evidence",
-            "questions"
-        ]
-
-        for field in list_fields:
-
-            if not isinstance(result[field], list):
-
-                result[field] = []
-
-        # ---------------------------------------------
-        # PRIORITY VALIDATION
-        # ---------------------------------------------
-
-        if not isinstance(
-            result["priority"],
-            dict
-        ):
-
-            result["priority"] = {
-                "critical": [],
-                "important": [],
-                "optional": []
-            }
-
-        for priority_level in [
-            "critical",
-            "important",
-            "optional"
-        ]:
-
-            if (
-                priority_level
-                not in result["priority"]
-                or not isinstance(
-                    result["priority"][priority_level],
-                    list
-                )
-            ):
-
-                result["priority"][priority_level] = []
-
-        # ---------------------------------------------
-        # SCORE VALIDATION
-        # ---------------------------------------------
-
-        try:
-
-            score = int(
-                result["completeness_score"]
-            )
-
-        except (TypeError, ValueError):
-
-            score = 0
-
-        score = max(
-            0,
-            min(100, score)
-        )
-
-        result["completeness_score"] = score
-
-        return result
 
     except Exception as e:
 
-        return {
-            "missing_information": [],
-            "unclear_information": [],
-            "contradictions": [],
-            "evidence": [],
-            "questions": [],
-            "completeness_score": 0,
-            "priority": {
-                "critical": [],
-                "important": [],
-                "optional": []
-            },
-            "error": str(e)
-        }
+        print(
+            "GEMINI API ERROR:",
+            repr(e)
+        )
+
+        return default_result()
+
+
+    print(
+        "GEMINI RESPONSE RECEIVED"
+    )
+
+
+    # =====================================================
+    # RAW RESPONSE
+    # =====================================================
+
+    raw_response = ""
+
+    try:
+
+        raw_response = (
+            response.text
+            or ""
+        )
+
+    except Exception:
+
+        raw_response = ""
+
+
+    print(
+        "RAW AI RESPONSE:"
+    )
+
+    print(
+        raw_response
+    )
+
+
+    # =====================================================
+    # EMPTY RESPONSE
+    # =====================================================
+
+    if not raw_response.strip():
+
+        print(
+            "EMPTY GEMINI RESPONSE"
+        )
+
+        return default_result()
+
+
+    # =====================================================
+    # CLEAN JSON
+    # =====================================================
+
+    cleaned_json = clean_json_response(
+        raw_response
+    )
+
+    cleaned_json = repair_json_text(
+        cleaned_json
+    )
+
+
+    # =====================================================
+    # PARSE JSON
+    # =====================================================
+
+    result = None
+
+
+    try:
+
+        result = json.loads(
+            cleaned_json
+        )
+
+    except Exception as first_error:
+
+        print(
+            "FIRST JSON PARSE ERROR:",
+            repr(first_error)
+        )
+
+
+        # Second repair attempt
+        try:
+
+            repaired = repair_json_text(
+                cleaned_json
+            )
+
+            result = json.loads(
+                repaired
+            )
+
+        except Exception as second_error:
+
+            print(
+                "SECOND JSON PARSE ERROR:",
+                repr(second_error)
+            )
+
+            print(
+                "CLEANED JSON:"
+            )
+
+            print(
+                cleaned_json
+            )
+
+            return default_result()
+
+
+    # =====================================================
+    # VALIDATE RESULT
+    # =====================================================
+
+    result = validate_result(
+        result
+    )
+
+
+    # =====================================================
+    # FINAL LOGS
+    # =====================================================
+
+    print(
+        "AI RESULT:",
+        result
+    )
+
+    print(
+        "AI SCORE:",
+        result.get(
+            "completeness_score",
+            0
+        )
+    )
+
+    print(
+        "RAW SCORE VALUE:",
+        result.get(
+            "completeness_score"
+        ),
+        "TYPE:",
+        type(
+            result.get(
+                "completeness_score"
+            )
+        ).__name__
+    )
+
+    print(
+        "FINAL AI SCORE:",
+        result.get(
+            "completeness_score",
+            0
+        )
+    )
+
+    print(
+        "========================================"
+    )
+
+    return result

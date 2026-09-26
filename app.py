@@ -4,7 +4,9 @@ from database.database import (
     init_database,
     save_analysis,
     get_all_analyses,
-    get_analysis_by_id
+    get_analysis_by_id,
+    create_user,
+    get_user_by_email
 )
 
 from ai.analyzer import analyze_document
@@ -26,6 +28,123 @@ app = Flask(__name__)
 app.secret_key = "missing_information_detective_secret"
 
 init_database()
+
+
+# =========================================================
+# AUTHENTICATION
+# =========================================================
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        ).strip()
+
+        if not name or not email or not password:
+
+            return render_template(
+                "register.html",
+                error="Please fill all fields."
+            )
+
+        created = create_user(
+            name,
+            email,
+            password
+        )
+
+        if not created:
+
+            return render_template(
+                "register.html",
+                error="Email already registered."
+            )
+
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "register.html"
+    )
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        password = request.form.get(
+            "password",
+            ""
+        ).strip()
+
+        user = get_user_by_email(
+            email
+        )
+
+        if user and user["password"] == password:
+
+            session["user_id"] = user["id"]
+
+            session["user_name"] = user["name"]
+
+            session["user_email"] = user["email"]
+
+            return redirect(
+                url_for("home")
+            )
+
+        return render_template(
+            "login.html",
+            error="Invalid email or password."
+        )
+
+    return render_template(
+        "login.html"
+    )
+
+
+@app.route("/logout")
+def logout():
+
+    session.pop(
+        "user_id",
+        None
+    )
+
+    session.pop(
+        "user_name",
+        None
+    )
+
+    session.pop(
+        "user_email",
+        None
+    )
+
+    return redirect(
+        url_for("login")
+    )
 
 
 # =========================================================
@@ -497,21 +616,28 @@ def generate_analysis():
     ).strip()
 
     uploaded_file = request.files.get(
-        "document"
+        "document_file"
     )
 
-    allowed_extensions = (
+    uploaded_image = request.files.get(
+        "image_file"
+    )
+
+    allowed_file_extensions = (
         ".pdf",
         ".docx",
-        ".txt",
+        ".txt"
+    )
+
+    allowed_image_extensions = (
         ".jpg",
         ".jpeg",
         ".png"
     )
 
     image_bytes = None
-    image_mime = None
 
+    image_mime = None
 
     # =====================================================
     # URL INPUT
@@ -563,9 +689,90 @@ def generate_analysis():
                 url_for("upload")
             )
 
+    # =====================================================
+    # IMAGE INPUT
+    # =====================================================
+
+    elif (
+        uploaded_image
+        and uploaded_image.filename
+    ):
+
+        filename = (
+            uploaded_image.filename.lower()
+        )
+
+        if not filename.endswith(
+            allowed_image_extensions
+        ):
+
+            print(
+                "INVALID IMAGE EXTENSION:",
+                filename
+            )
+
+            return redirect(
+                url_for("upload")
+            )
+
+        document_name = (
+            uploaded_image.filename
+        )
+
+        try:
+
+            image_bytes = (
+                uploaded_image.read()
+            )
+
+            if not image_bytes:
+
+                print(
+                    "EMPTY IMAGE FILE"
+                )
+
+                return redirect(
+                    url_for("upload")
+                )
+
+            if filename.endswith(
+                (".jpg", ".jpeg")
+            ):
+
+                image_mime = "image/jpeg"
+
+            else:
+
+                image_mime = "image/png"
+
+            print(
+                "IMAGE RECEIVED:",
+                document_name
+            )
+
+            print(
+                "IMAGE MIME:",
+                image_mime
+            )
+
+            print(
+                "IMAGE SIZE:",
+                len(image_bytes)
+            )
+
+        except Exception as e:
+
+            print(
+                "IMAGE ERROR:",
+                repr(e)
+            )
+
+            return redirect(
+                url_for("upload")
+            )
 
     # =====================================================
-    # FILE INPUT
+    # DOCUMENT FILE INPUT
     # =====================================================
 
     elif (
@@ -578,7 +785,7 @@ def generate_analysis():
         )
 
         if not filename.endswith(
-            allowed_extensions
+            allowed_file_extensions
         ):
 
             print(
@@ -596,42 +803,27 @@ def generate_analysis():
 
         try:
 
-            # IMAGE
+            extracted_text = (
+                extract_text_from_file(
+                    uploaded_file
+                )
+            )
 
-            if filename.endswith(
-                (".jpg", ".jpeg", ".png")
-            ):
+            if extracted_text.strip():
 
-                image_bytes = (
-                    uploaded_file.read()
+                document_text = (
+                    extracted_text.strip()
                 )
 
-                if filename.endswith(
-                    (".jpg", ".jpeg")
-                ):
+            print(
+                "FILE RECEIVED:",
+                document_name
+            )
 
-                    image_mime = "image/jpeg"
-
-                else:
-
-                    image_mime = "image/png"
-
-
-            # PDF / DOCX / TXT
-
-            else:
-
-                extracted_text = (
-                    extract_text_from_file(
-                        uploaded_file
-                    )
-                )
-
-                if extracted_text.strip():
-
-                    document_text = (
-                        extracted_text.strip()
-                    )
+            print(
+                "EXTRACTED TEXT LENGTH:",
+                len(document_text)
+            )
 
         except Exception as e:
 
@@ -644,7 +836,6 @@ def generate_analysis():
                 url_for("upload")
             )
 
-
     # =====================================================
     # EMPTY INPUT CHECK
     # =====================================================
@@ -655,7 +846,7 @@ def generate_analysis():
     ):
 
         print(
-            "EMPTY DOCUMENT TEXT"
+            "EMPTY DOCUMENT INPUT"
         )
 
         print(
@@ -671,7 +862,6 @@ def generate_analysis():
         return redirect(
             url_for("upload")
         )
-
 
     # =====================================================
     # AI ANALYSIS
@@ -704,7 +894,6 @@ def generate_analysis():
             url_for("upload")
         )
 
-
     # =====================================================
     # CHECK AI RESULT
     # =====================================================
@@ -722,7 +911,6 @@ def generate_analysis():
             url_for("upload")
         )
 
-
     # =====================================================
     # SAVE SESSION
     # =====================================================
@@ -736,7 +924,6 @@ def generate_analysis():
         if document_name
         else "Untitled Investigation"
     )
-
 
     # =====================================================
     # SAVE HISTORY
@@ -764,7 +951,6 @@ def generate_analysis():
             "DATABASE SAVE ERROR:",
             repr(e)
         )
-
 
     # =====================================================
     # SHOW RESULTS

@@ -111,12 +111,14 @@
                 <div class="priority-card critical">
 
                     <div class="priority-header">
+
                         <span class="priority-icon">🔴</span>
 
                         <div>
                             <h3>Critical</h3>
                             <p>Needs immediate attention</p>
                         </div>
+
                     </div>
 
                     {% set critical_items =
@@ -125,9 +127,19 @@
                     {% if critical_items %}
 
                     <ul>
+
                         {% for item in critical_items %}
-                        <li>{{ item }}</li>
+
+                        <li>
+                            {% if item is mapping %}
+                                {{ item.get("item", "") }}
+                            {% else %}
+                                {{ item }}
+                            {% endif %}
+                        </li>
+
                         {% endfor %}
+
                     </ul>
 
                     {% else %}
@@ -145,12 +157,14 @@
                 <div class="priority-card important">
 
                     <div class="priority-header">
+
                         <span class="priority-icon">🟠</span>
 
                         <div>
                             <h3>Important</h3>
                             <p>Should be reviewed</p>
                         </div>
+
                     </div>
 
                     {% set important_items =
@@ -159,9 +173,19 @@
                     {% if important_items %}
 
                     <ul>
+
                         {% for item in important_items %}
-                        <li>{{ item }}</li>
+
+                        <li>
+                            {% if item is mapping %}
+                                {{ item.get("item", "") }}
+                            {% else %}
+                                {{ item }}
+                            {% endif %}
+                        </li>
+
                         {% endfor %}
+
                     </ul>
 
                     {% else %}
@@ -179,12 +203,14 @@
                 <div class="priority-card optional">
 
                     <div class="priority-header">
+
                         <span class="priority-icon">🟢</span>
 
                         <div>
                             <h3>Optional</h3>
                             <p>Useful additional details</p>
                         </div>
+
                     </div>
 
                     {% set optional_items =
@@ -193,9 +219,19 @@
                     {% if optional_items %}
 
                     <ul>
+
                         {% for item in optional_items %}
-                        <li>{{ item }}</li>
+
+                        <li>
+                            {% if item is mapping %}
+                                {{ item.get("item", "") }}
+                            {% else %}
+                                {{ item }}
+                            {% endif %}
+                        </li>
+
                         {% endfor %}
+
                     </ul>
 
                     {% else %}
@@ -219,12 +255,15 @@
             <div class="section-heading">
 
                 <div>
+
                     <p class="eyebrow">CASE CONNECTION</p>
+
                     <h2>Evidence Trail</h2>
 
                     <p class="trail-description">
                         Review the evidence, information gaps and questions identified by the AI.
                     </p>
+
                 </div>
 
             </div>
@@ -237,12 +276,14 @@
                 <div class="trail-column">
 
                     <div class="trail-column-header verified-header">
+
                         <span class="trail-number">01</span>
 
                         <div>
                             <h3>Evidence Found</h3>
                             <p>Information already present</p>
                         </div>
+
                     </div>
 
 
@@ -256,7 +297,19 @@
                                 VERIFIED
                             </span>
 
-                            <p>{{ item }}</p>
+                            {% if item is mapping %}
+
+                                <strong>{{ item.get("item", "") }}</strong>
+
+                                {% if item.get("details") %}
+                                <p>{{ item.get("details") }}</p>
+                                {% endif %}
+
+                            {% else %}
+
+                                <p>{{ item }}</p>
+
+                            {% endif %}
 
                         </div>
 
@@ -277,12 +330,14 @@
                 <div class="trail-column">
 
                     <div class="trail-column-header missing-header">
+
                         <span class="trail-number">02</span>
 
                         <div>
                             <h3>Information Gaps</h3>
                             <p>What needs attention</p>
                         </div>
+
                     </div>
 
 
@@ -296,7 +351,19 @@
                                 MISSING
                             </span>
 
-                            <p>{{ item }}</p>
+                            {% if item is mapping %}
+
+                                <strong>{{ item.get("item", "") }}</strong>
+
+                                {% if item.get("details") %}
+                                <p>{{ item.get("details") }}</p>
+                                {% endif %}
+
+                            {% else %}
+
+                                <p>{{ item }}</p>
+
+                            {% endif %}
 
                         </div>
 
@@ -315,7 +382,19 @@
                                 UNCLEAR
                             </span>
 
-                            <p>{{ item }}</p>
+                            {% if item is mapping %}
+
+                                <strong>{{ item.get("item", "") }}</strong>
+
+                                {% if item.get("details") %}
+                                <p>{{ item.get("details") }}</p>
+                                {% endif %}
+
+                            {% else %}
+
+                                <p>{{ item }}</p>
+
+                            {% endif %}
 
                         </div>
 
@@ -340,12 +419,14 @@
                 <div class="trail-column">
 
                     <div class="trail-column-header question-header">
+
                         <span class="trail-number">03</span>
 
                         <div>
                             <h3>Questions to Ask</h3>
                             <p>Next investigation questions</p>
                         </div>
+
                     </div>
 
 
@@ -357,7 +438,17 @@
 
                             <span class="question-mark">?</span>
 
-                            <p>{{ question }}</p>
+                            {% if question is mapping %}
+
+                                <p>
+                                    {{ question.get("question", question.get("item", "")) }}
+                                </p>
+
+                            {% else %}
+
+                                <p>{{ question }}</p>
+
+                            {% endif %}
 
                         </div>
 
@@ -403,7 +494,25 @@
                             MISSING
                         </span>
 
-                        <p>{{ item }}</p>
+                        {% if item is mapping %}
+
+                            <h3>{{ item.get("item", "") }}</h3>
+
+                            {% if item.get("details") %}
+                            <p>{{ item.get("details") }}</p>
+                            {% endif %}
+
+                            {% if item.get("priority") %}
+                            <small>
+                                Priority: {{ item.get("priority")|capitalize }}
+                            </small>
+                            {% endif %}
+
+                        {% else %}
+
+                            <p>{{ item }}</p>
+
+                        {% endif %}
 
                     </div>
 
@@ -447,7 +556,25 @@
                             UNCLEAR
                         </span>
 
-                        <p>{{ item }}</p>
+                        {% if item is mapping %}
+
+                            <h3>{{ item.get("item", "") }}</h3>
+
+                            {% if item.get("details") %}
+                            <p>{{ item.get("details") }}</p>
+                            {% endif %}
+
+                            {% if item.get("priority") %}
+                            <small>
+                                Priority: {{ item.get("priority")|capitalize }}
+                            </small>
+                            {% endif %}
+
+                        {% else %}
+
+                            <p>{{ item }}</p>
+
+                        {% endif %}
 
                     </div>
 
@@ -491,7 +618,19 @@
                             CONTRADICTION
                         </span>
 
-                        <p>{{ item }}</p>
+                        {% if item is mapping %}
+
+                            <h3>{{ item.get("item", "") }}</h3>
+
+                            {% if item.get("details") %}
+                            <p>{{ item.get("details") }}</p>
+                            {% endif %}
+
+                        {% else %}
+
+                            <p>{{ item }}</p>
+
+                        {% endif %}
 
                     </div>
 
@@ -535,7 +674,19 @@
                             VERIFIED
                         </span>
 
-                        <p>{{ item }}</p>
+                        {% if item is mapping %}
+
+                            <h3>{{ item.get("item", "") }}</h3>
+
+                            {% if item.get("details") %}
+                            <p>{{ item.get("details") }}</p>
+                            {% endif %}
+
+                        {% else %}
+
+                            <p>{{ item }}</p>
+
+                        {% endif %}
 
                     </div>
 
@@ -582,7 +733,17 @@
 
                         <span>?</span>
 
-                        <p>{{ question }}</p>
+                        {% if question is mapping %}
+
+                            <p>
+                                {{ question.get("question", question.get("item", "")) }}
+                            </p>
+
+                        {% else %}
+
+                            <p>{{ question }}</p>
+
+                        {% endif %}
 
                     </div>
 
@@ -649,6 +810,76 @@
 
 
 <style>
+
+/* =========================================================
+   RESULTS PAGE LAYOUT
+   ========================================================= */
+
+.main-content {
+    margin-left: 225px;
+    width: calc(100% - 225px);
+    min-height: 100vh;
+    padding: 28px 30px 40px;
+}
+
+.main-content .page-header {
+    margin-bottom: 22px;
+}
+
+.main-content .eyebrow {
+    color: #a34a3d;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+}
+
+.main-content h1 {
+    font-family: "Playfair Display", serif;
+    font-size: 31px;
+    line-height: 1.08;
+    color: #121c22;
+}
+
+.main-content h2 {
+    font-family: "Playfair Display", serif;
+    color: #121c22;
+}
+
+.main-content .section-heading {
+    margin-bottom: 14px;
+}
+
+.main-content .results-section {
+    margin-top: 28px;
+}
+
+.main-content .primary-btn,
+.main-content .secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.main-content .primary-btn {
+    background: #d95543;
+    color: white;
+}
+
+.main-content .secondary-btn {
+    background: #eee3d2;
+    color: #24313a;
+    border: 1px solid #ddd2c2;
+}
+
+
+/* =========================================================
+   SCORE
+   ========================================================= */
 
 .result-score-card {
     background: #f8f1e4;
@@ -819,6 +1050,11 @@
     margin-bottom: 0;
 }
 
+.trail-card strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
 .trail-card p {
     margin: 4px 0 0;
     line-height: 1.5;
@@ -887,9 +1123,20 @@
     padding: 20px;
 }
 
+.evidence-card h3 {
+    margin-top: 5px;
+    margin-bottom: 7px;
+}
+
 .evidence-card p {
     margin-bottom: 0;
     line-height: 1.6;
+}
+
+.evidence-card small {
+    display: inline-block;
+    margin-top: 12px;
+    color: #6d7880;
 }
 
 .status-label {
@@ -992,6 +1239,16 @@
     .result-score-card {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+}
+
+@media (max-width: 780px) {
+
+    .main-content {
+        margin-left: 76px;
+        width: calc(100% - 76px);
+        padding: 20px 15px;
     }
 
 }
